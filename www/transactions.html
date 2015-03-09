@@ -1,0 +1,913 @@
+<!--
+	Chainspotting: Transactions
+	Written by Colin Cohen
+	(C)opyright 2015 by Chainspotting
+	
+	Visually tracks real-time transactions on the bitcoin blockchain in the form of a bar graph.
+-->
+
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>Chainspotting</title>
+		<meta charset="utf-8">
+		<!-- JQuery styles -->
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+		<style type="text/css">
+		
+			html {
+				height: 100%;
+			}
+			
+			body {
+				margin: 0;
+				padding: 0;
+				background: #FFFFFF;
+				color: #000000;
+				font-family: sans-serif;
+				font-size: 13px;
+				line-height: 20px;
+				height: 100%;
+			}
+			
+			#container {
+				height: 90%;
+			}
+			
+			#title {
+				position: absolute;
+				top: 10px;
+				width: 120px;
+				height: 60px;
+				left: 10px;
+			}
+			
+			#title img {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				width: 100%;
+				height: auto;
+			}
+		
+			#modules {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+			}
+
+			#info {
+				font-size: 12px;
+				text-align: center;
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+			}
+
+			bull {
+				padding: 0 5px;
+				color: #555;
+			}
+
+			 #toolbar {
+				padding: 5px;
+				width: 331px;
+				margin-left: auto;
+				margin-right: auto;
+				font-size: 13px;
+				bottom: 10px;
+			}
+			
+			 #transaction-type {
+				padding: 4px;
+				width: 200px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			
+			.overflow {
+				height: 200px;
+				width: 200px;
+			}
+			
+			.ui-icon-alert {
+				-ms-transform: scale(1.1); /* IE 9 */
+				-webkit-transform: scale(1.1); /* Chrome, Safari, Opera */
+				transform: scale(1.1);
+			}
+			
+			/* Mobile style sheet */
+			@media only screen and (max-width: 480px) {
+			}
+			
+			/* Require landscape mode on mobile */
+			#warning-message {
+				display: none;
+				height: 90%;
+				position: absolute;
+				text-align: center;
+				top: 50%;
+				left: 0;
+				right: 0;
+			}
+			@media only screen and (orientation:portrait){
+				#container {display:none;}
+				#toolbar {display:none;}
+				#info {display:none;}
+				#modules {display:none;}
+				#warning-message {display:block;}
+			}
+			@media only screen and (orientation:landscape){
+				#warning-message {display:none;}
+			}
+			@media only screen and (orientation:landscape) and (max-width: 800px){
+				#info {
+					font-size: 75%;
+					width: 95px;
+					line-height: 1.2em;
+				}
+				#title img {
+					width: 75%;
+					height: auto;
+				}
+				#container {
+					height: 85%;
+				}
+			}
+			
+		</style>
+	</head>
+	<body>
+
+	<div id="container"></div>
+	<div id="warning-message">
+		<b>Please Switch To Landscape Mode<b>
+	</div>
+	<div id="info">
+		<b>&copy; copyright 2015 by chainspotting<br><a href="https://github.com/pabitel-cc/helpabitapp">source</a> <span class="bull">&bull; <a href="mailto:pabitel@yahoo.com">contact</a></b>
+	</div>
+	<div id="title" class="img-resize">
+		<img src="images/chainspotting.png" alt="Chainspotting">
+	</div>
+	<div id="toolbar" class="ui-widget-header ui-corner-all">
+		<button id="add">add transactions</button>
+		<button id="delete">delete transactions</button>
+		<button id="clear">clear transactions</button>
+		<button id="save">save transaction set</button>
+		<button id="load">load transaction set</button>
+		<button id="settings">settings</button>
+		<button id="help">help</button>
+		<input type="checkbox" id="3d"><label for="3d">3D</label>
+	</div>
+	<div id="modules">
+		<select id="module">
+			<option>Transactions</option>
+		</select>
+	</div>
+	<div id="add-transactions" title="Add Transactions" style="display: none">
+		<form>
+			<div id="transaction-type">
+				<input type="radio" id="address" name="add-radio" checked="checked"><label for="address">Address</label>
+				<input type="radio" id="transaction" name="add-radio"><label for="transaction">Transaction</label>
+			</div>
+			<label for="add-id">ID</label>
+			<input style="width: 100%" type="text" name="add-id" id="add-id" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="delete-transactions" title="Delete" style="display: none">
+		<form>
+			<label for="delete-menu">ID</label>
+			<select style="width: 100%" name="delete-menu" id="delete-menu">
+				<optgroup id="delete-trans" name="delete-trans" label="Transactions">
+				<optgroup id="delete-addr" name="delete-addr" label="Addresses">
+			</select>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-error" style="display: none" title="Error"></div>
+	<div id="save-set" title="Save Transaction Set" style="display: none">
+		<form>
+			<label for="save-name">Name</label>
+			<input style="width: 100%" type="text" name="save-name" id="save-name" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="load-set" title="Load Transaction Set" style="display: none">
+		<form>
+			<label for="load-menu">ID</label>
+			<select style="width: 100%" name="load-menu" id="load-menu">
+			</select>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-settings" style="display: none" title="Settings">
+		<form>
+			<label for="block-chain-menu">Blockchain</label>
+			<select style="width: 100%" name="block-chain-menu" id="block-chain-menu">
+				<option>MAINNET</option>
+				<option>TESTNET3</option>
+			</select>
+			<label for="max-confirm">Max Confirmations (1-9)</label>
+			<input style="width: 100%" name="value" id="max-confirm">
+			<div style="margin-top: 10px">
+				<input type="checkbox" id="auto-add"><label for="auto-add">Auto Add Address Transactions</label>
+			</div>
+			<div style="margin-top: 10px">
+				<input type="checkbox" id="ring"><label for="ring">Ring Bell on Confirmations</label>
+			</div>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-help" title="Help"></div>
+	
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="http://code.highcharts.com/highcharts-3d.js"></script>
+	<!-- main() -->
+	<script type="text/javascript">
+	
+		// Chain-specific globals
+		var api_key_id = '9ecfd9aef5cf34b6e800c3da7171296e';
+		var chain_data = 'https://api.chain.com/v2/';
+		var chain_notify = 'wss://ws.chain.com/v2/notifications';
+		// Other globals
+		var form = null;
+		var connect = null;
+		var chart = null;
+		var options = null;
+		var opening = '<b>press the "+" button to add transactions</b>';
+		var bell = new Audio('audio/bell.wav');
+		var sets = set_count();
+		
+		// Find the number of saved selection sets
+		function set_count() {
+			var cnt = 0;
+			var id = 'transactions';
+			
+			for (i = 0; i < localStorage.length; i++) {
+				key = localStorage.key(i);
+				if (key.indexOf(id) == 0 && key.length > id.length) {
+					cnt++;
+				}
+			}
+			
+			return (cnt);
+		}
+		
+		// Use local storage to save and load user data
+		function save_options() {
+			localStorage.setItem('transactions', JSON.stringify(options));
+		}
+		
+		function load_options() {
+			options = JSON.parse(localStorage.getItem('transactions'));
+		}
+		
+		// Add a blockchain transaction to the bar graph
+		function add_transaction_hash(hash, confirm) {
+			chart.xAxis[0].setTitle({text: ''}, false);
+			// Build legend link to blockchain.info
+			var trans = hash.substring(0, 5) + '...';
+			var server = (options.block_chain == 'bitcoin') ? 'blockchain.info/tx/' : 'www.biteasy.com/testnet/transactions/';
+			chart.series[0].addPoint({
+				y: confirm,
+				name: '<a href="https://' + server + hash + '">' + trans + '</a>'
+			});
+			if ($('#delete').button('option', 'disabled') == true) {
+				$('#delete').button('option', 'disabled', false)
+				$('#clear').button('option', 'disabled', false)
+			}
+//			options = chart.options;
+			options.transactions.push(hash);
+			save_options();
+			// Start tracking transaction confirmations
+			add_request(hash, 'transaction');
+		}
+			
+		// Add all transactions associated with a bitcoin address
+		function add_address(hash, add_hash) {
+			var url = chain_data + options.block_chain + '/addresses/' + hash + '/transactions';
+								
+			// Obtain transaction data for an address from Chain
+			$.ajax({
+				url: url,
+				data: {'api-key-id': api_key_id},
+				type: 'GET',
+				success: function(data) {
+					var i = 0;
+					more = true;
+					// Add transactions to the graph
+					while (i < data.length && more) {
+						if (data[i].confirmations > options.max_confirm) {
+							more = false;
+						} else if ($.inArray(data[i].hash, options.transactions) == -1) {
+							add_transaction_hash(data[i].hash, data[i].confirmations);
+						}
+						i++;
+					}
+					if (add_hash) {
+//						options = chart.options;
+						options.addresses.push(hash);
+						save_options();
+					}
+					if ($('#delete').button('option', 'disabled') == true) {
+						$('#delete').button('option', 'disabled', false)
+						$('#clear').button('option', 'disabled', false)
+					}
+					add_request(hash, 'address');
+				},
+				error: function(req, text, obj) {
+					error('Invalid Address');
+				}
+			});
+		}
+			
+		// Delete transaction from the graph
+		function delete_transaction(hash) {
+			var index = $.inArray(hash, options.transactions);
+			
+			options.transactions.splice(index, 1);
+			chart.series[0].removePoint(index);
+			if (options.transactions.length == 0 && options.addresses.length == 0) {
+				$('#delete').button('option', 'disabled', true)
+				$('#clear').button('option', 'disabled', true)
+				$('#delete-button').button('disable');
+			}
+			if (chart.series[0].data.length == 0) {
+				chart.xAxis[0].setTitle({text: opening}, false);
+			}
+			options = chart.options;
+			save_options();
+			chart.destroy();
+			chart = new Highcharts.Chart(options);
+		}
+		
+		// Stop tracking a bitcoin address
+		function delete_address(hash) {
+			var index = $.inArray(hash, options.addresses);
+			
+			options.addresses.splice(index, 1);
+			if (options.transactions.length == 0 && options.addresses.length == 0) {
+				$('#delete').button('option', 'disabled', true)
+				$('#clear').button('option', 'disabled', true)
+				$('#delete-button').button('disable');
+			}
+			save_options();
+		}
+		
+		// Remove all transactions from the graph
+		function clear() {
+			var len = options.addresses.length;
+			for (i = 0; i < len; i++) {
+				delete_address(options.addresses[i]);
+			}
+			len = options.transactions.length;
+			for (i = 0; i < len; i++) {
+				delete_transaction(options.transactions[i]);
+			}
+		}
+			
+		// Generic error dialog
+		function error(msg) {
+			$('#dialog-error').html('<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>' + msg + '</p>');
+			$('#dialog-error').dialog({
+				resizable: false,
+				modal: true,
+				buttons: {
+					OK: function () {
+						$(this).dialog('close');
+					}
+				},
+				create: function(event, ui) {
+					$('#dialog-error').show();
+				}
+			});
+		}
+			
+		// main()
+		$(function () {
+			// Temporarily uncomment after changes to the options object
+//			localStorage.removeItem('transactions');
+			load_options();
+			// Highcharts options
+			if (options == null) {
+				options = {	
+					chart: {
+						renderTo: 'container',
+						type: 'column',
+						zoomType: 'x',
+						panning: true,
+						panKey: 'shift',
+						margin: 100,
+						options3d: {
+							enabled: false,
+							alpha: 10,
+							beta: 25,
+							depth: 70
+						}
+					},
+					title: {
+						text: null
+					},
+					legend: {enabled: false},
+					credits: {enabled: false},
+					plotOptions: {
+						column: {
+							depth: 50
+						}
+					},
+					xAxis: {
+						labels: {
+							rotation: -45,
+							useHTML: true,
+							style: {
+								fontSize: '13px',
+								fontFamily: 'Verdana, sans-serif'
+							}
+						},
+						title: {
+							text: opening,
+							style: {
+								fontSize: '13px',
+								fontFamily: 'Verdana, sans-serif'
+							}
+						},
+						min: 0,
+						categories: []
+					},
+					yAxis: {
+						title: {
+							text: '<b>confirmations</b>',
+							style: {
+								fontSize: '13px',
+								fontFamily: 'Verdana, sans-serif'
+							}
+						},
+						max: 10,
+						allowDecimals: false
+					},
+					series: [{
+						name: 'confirmations',
+						data: []
+					}],
+					// Module-specific variables
+					transactions: [],
+					addresses: [],
+					block_chain: 'bitcoin',
+					max_confirm: 6,
+					auto_add: true,
+					ring: false
+				};
+			}
+			chart = new Highcharts.Chart(options);
+			
+			// Use Chain to validate and process transactions
+			function add_transaction(hash) {
+				var url = chain_data + options.block_chain + '/transactions/' + hash;
+								
+				$.ajax({
+					url: url,
+					data: {'api-key-id': api_key_id},
+					type: 'GET',
+					success: function(data) {
+						if (data.confirmations > options.max_confirm) {
+							error('The Transaction Has Exceeded the Confirmation Threshold');
+						} else {
+							add_transaction_hash(hash, data.confirmations);
+							$('#add-id').val('');
+						}
+					},
+					error: function(req, text, obj) {
+						error('Invalid Transaction');
+					}
+				});
+			}
+			
+			// Build JQuery dropdown menus
+			function del_menu_build() {
+				var opts = [];
+				for (i = 0; i < options.transactions.length; i++) {
+					opts[i] = '<option>' + options.transactions[i] + '</option>';
+				}
+				$('#delete-trans')
+					.append(opts);
+					
+				opts = [];
+				for (i = 0; i < options.addresses.length; i++) {
+					opts[i] = '<option>' + options.addresses[i] + '</option>';
+				}
+				$('#delete-addr')
+					.append(opts);
+			}
+			
+			function set_menu_build() {
+				var opts = [];
+				var key;
+				var id = 'transactions';
+				for (i = 0; i < localStorage.length; i++) {
+					key = localStorage.key(i);
+					if (key.indexOf(id) == 0 && key.length > id.length) {
+						opts.push('<option>' + key.substring(id.length, key.length) + '</option>');
+					}
+				}
+				$('#load-menu')
+					.append(opts);
+			}
+			
+			// Process toolbar buttons
+			// Add transactions
+			$('#add').button({
+				text: false,
+				icons: {primary: 'ui-icon-plus'}
+			}).click(function () {
+				$('#add-id').val('');
+				var dialog = $('#add-transactions').dialog({
+					resizable: false,
+					height: 250,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'add-button',
+							text: 'Add',
+							click: function () {
+								var hash = $('#add-id').val();
+								if ($('#transaction-type :radio:checked').prop('id') == 'transaction') {
+									if ($.inArray(hash, options.transactions) == -1) {
+										add_transaction(hash);
+									} else {
+										error('Transaction Already Exists');
+									}
+								} else {
+									if ($.inArray(hash, options.addresses) == -1) {
+										add_address(hash, true);
+									} else {
+										error('Address Already Exists');
+									}
+								}
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Close',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					]
+				});
+				$('#transaction-type').buttonset({
+					create: function(event, ui) {
+						$('#transaction-type').show();
+					}
+				});
+				form = dialog.find('form');
+			});
+			// Delete transactions
+			$('#delete').button({
+				text: false,
+				disabled: options.transactions.length > 0 || options.addresses.length > 0 ? false : true,
+				icons: { primary: 'ui-icon-minus' }
+			}).click(function () {
+				var dialog = $('#delete-transactions').dialog({
+					resizable: false,
+					height: 350,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'delete-button',
+							text: 'Delete',
+							click: function () {
+								if ($('#delete-menu :selected').parent().prop('label') == "Addresses") {									
+									delete_address($('#delete-menu').val());
+								} else {
+									delete_transaction($('#delete-menu').val());
+								}
+								$('#delete-menu').find('option').remove().end();
+								$('#delete-menu').selectmenu('destroy');
+								del_menu_build();
+								$('#delete-menu').selectmenu({ style: 'dropdown' });
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Close',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					],
+					create: function(event, ui) {
+						$('#delete-transactions').css('overflow', 'hidden');
+					}
+				});
+				del_menu_build();
+				$('#delete-menu')
+					.selectmenu()
+					.selectmenu('menuWidget')
+						.addClass('overflow');
+				$('#delete-menu')[0].selectedIndex = 0;
+				$('#delete-menu').selectmenu('refresh');
+			});
+			// Clear all transactions
+			$('#clear').button({
+				text: false,
+				disabled: options.transactions.length > 0 || options.addresses.length > 0 ? false : true,
+				icons: { primary: 'ui-icon-close' }
+			}).click(function () {
+				clear();
+			});
+			// Save and load transaction/address selections sets
+			$('#save').button({
+				text: false,
+				icons: { primary: 'ui-icon-arrowthick-1-s' }
+			}).click(function () {
+				var dialog = $('#save-set').dialog({
+					resizable: false,
+					height: 200,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'save-button',
+							text: 'Save',
+							click: function () {
+								var set = $('#save-name').val();
+								if (set) {
+									localStorage.setItem('transactions' + set, JSON.stringify(options));
+									sets++;
+									if ($('#load').button('option', 'disabled') == true) {
+										$('#load').button('option', 'disabled', false)
+									}
+									dialog.dialog('close');
+								}
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Cancel',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					]
+				});
+			});
+			$('#load').button({
+				text: false,
+				disabled: sets > 0 ? false : true,
+				icons: { primary: 'ui-icon-arrowthick-1-n' }
+			}).click(function () {
+				var dialog = $('#load-set').dialog({
+					resizable: false,
+					height: 350,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'load-button',
+							text: 'Load',
+							click: function () {
+								clear();
+								options = JSON.parse(localStorage.getItem('transactions' + $('#load-menu').val()));
+								chart.destroy();
+								chart = new Highcharts.Chart(options);
+								dialog.dialog('close');
+							}
+						},
+						{
+							id: 'delete-button',
+							text: 'Delete',
+							click: function () {
+								localStorage.removeItem('transactions' + $('#load-menu').val());
+								$('#load-menu').find('option').remove().end();
+								$('#load-menu').selectmenu('destroy');
+								del_menu_build();
+								$('#load-menu').selectmenu({ style: 'dropdown' });
+								sets--;
+								if (sets == 0) {
+									$('#load').button('option', 'disabled', true)
+									$('#delete-button').button('disable');
+								}
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Cancel',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					],
+					create: function(event, ui) {
+						$('#load-set').css('overflow', 'hidden');
+					}
+				});
+				set_menu_build();
+				$('#load-menu')
+					.selectmenu()
+					.selectmenu('menuWidget')
+						.addClass('overflow');
+				$('#load-menu')[0].selectedIndex = 0;
+				$('#load-menu').selectmenu('refresh');
+			});
+			// Settings
+			$('#settings').button({
+				text: false,
+				icons: { primary: 'ui-icon-gear' }
+			}).click(function () {
+				var dialog = $('#dialog-settings').dialog({
+					resizable: false,
+					height: 350,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'ok-button',
+							text: 'OK',
+							click: function() {
+								var old_chain = options.block_chain;
+								options.block_chain = $('#block-chain-menu').val() == 'TESTNET3' ? 'testnet3' : 'bitcoin';
+								if (old_chain != options.block_chain) {
+									clear();
+								}
+								var old_confirm = options.max_confirm;
+								options.max_confirm = $('#max-confirm').val();
+								if (old_confirm != options.max_confirm) {
+									var len = options.transactions.length;
+									for (i = 0; i < len; i++) {
+										if (chart.series[0].data[i].y > options.max_confirm) {
+											delete_transaction(options.transactions[i]);
+										}
+									}
+								}
+								options.auto_add = $('#auto-add').prop('checked');
+								options.ring = $('#ring').prop('checked');
+								save_options();
+								dialog.dialog('close');
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Cancel',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					]
+				});
+				$('#block-chain-menu')
+					.val(options.block_chain == 'testnet3' ? 'TESTNET3' : 'MAINNET')
+					.selectmenu();
+				$('#max-confirm')
+					.val(options.max_confirm)
+					.spinner({
+						min: 1,
+						max: 9
+					});
+				$('#auto-add')
+					.prop('checked', options.auto_add)
+					.button();
+				$('#ring')
+					.prop('checked', options.ring)
+					.button();
+			});
+			$('#help').button({
+				text: false,
+				icons: { primary: 'ui-icon-help' }
+			}).click(function () {
+				var dialog = $('#dialog-help').dialog({
+					resizable: false,
+					height: $(window).height() * 0.75,
+					width: $(window).width() * 0.75,
+					modal: true,
+					buttons: [
+						{
+							id: 'ok-button',
+							text: 'OK',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					],
+					open: function () {
+						$(this).load('transactions.help.html');
+					}
+				});
+			});
+			// Toggle 3D graphs
+			$('#3d').button()
+			.prop('checked', options.chart.options3d.enabled)
+			.click(function () {
+				options = chart.options;
+				chart.destroy();
+				if ($('#3d').is(':checked')) {
+					options.chart.options3d.enabled = true;
+				} else {
+					options.chart.options3d.enabled = false;
+				}
+				chart = new Highcharts.Chart(options);
+				save_options();
+			});
+			$('#3d').button('refresh');
+			$('#module').selectmenu({width: 150});
+		});	
+		
+		// Begin data processing
+		window.onload = function() {
+			start();
+		}
+		window.onunload = function() {
+			if (connect) {
+				connect.close();
+			}
+		}
+		
+		// Request transactions data from Chain
+		function add_request(hash, type) {
+			if (type == 'transaction') {
+				var request = {block_chain: options.block_chain, type: type, transaction_hash: hash};
+			} else {
+				var request = {block_chain: options.block_chain, type: type, address: hash};
+			}
+			connect.send(JSON.stringify(request));
+		}
+		
+		// Connect to Chain's server
+		function start() {
+			if (window.MozWebSocket) {
+				window.WebSocket = window.MozWebSocket;
+			}
+			
+			// Update bar graph with confirmation data
+			function update_transaction(hash, index) {
+				var url = chain_data + options.block_chain + '/transactions/' + hash;
+							
+				$.ajax({
+					url: url,
+					data: {'api-key-id': api_key_id},
+					type: 'GET',
+					success: function(data) {
+						if (data.confirmations > options.max_confirm) {
+							delete_transaction(hash);
+						} else {
+							chart.series[0].data[index].update(data.confirmations);
+						}
+					}
+				});
+			}
+			
+			// Open communication
+			connect = new WebSocket(chain_notify);
+			connect.onopen = function (event) {
+				var request;
+				
+				// Update data from previous run
+				var len = options.transactions.length;
+				for (i = 0; i < len; i++) {
+					update_transaction(options.transactions[i], i);
+					add_request(options.transactions[i], 'transaction');
+				}
+				len = options.addresses.length;
+				for (i = 0; i < len; i++) {
+					add_address(options.addresses[i], false);
+				}
+			};
+			// Process Chain notifications
+			connect.onmessage = function (event) {
+				var data = JSON.parse(event.data);
+				if (data.payload.type == 'transaction') {
+					var index = $.inArray(data.payload.transaction.hash, options.transactions);
+					if (index != -1) {
+						if (data.payload.transaction.confirmations > options.max_confirm) {
+							delete_transaction(data.payload.transaction.hash);
+						} else {
+							chart.series[0].data[index].update(data.payload.transaction.confirmations);
+							if (options.ring) {
+								bell.play();
+							}
+						}
+					}
+				} else if (data.payload.type == 'address') {
+					if ($.inArray(data.payload.address, options.addresses) != -1 
+						&& $.inArray(data.payload.transaction_hash, options.transactions) == -1
+						&& data.payload.confirmations < options.max_confirm 
+						&& options.auto_add) {
+							add_transaction_hash(data.payload.transaction_hash, data.payload.confirmations);
+					}
+				}
+			};
+			connect.onerror = function (ev) {
+				console.log(ev);
+			}
+			connect.close = function (event) {
+				connect = new WebSocket(chain_notify);
+			}
+		}
+	
+	</script>
+	</body>
+</html>
