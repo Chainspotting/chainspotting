@@ -69,8 +69,12 @@
 				padding: 0 5px;
 				color: #555;
 			}
+			
+			#tb_container {
+				display: none;
+			}
 
-			 #toolbar {
+			#toolbar {
 				position: absolute;
 				padding: 5px;
 				width: 331px;
@@ -82,7 +86,7 @@
 				bottom: 10px;
 			}
 			
-			 #transaction-type {
+			#transaction-type {
 				padding: 4px;
 				width: 200px;
 				margin-left: auto;
@@ -100,7 +104,7 @@
 				transform: scale(1.1);
 			}
 			
-			/* Mobile style sheet */
+			/* Mobile style sheets */
 			@media only screen and (max-width: 480px) {
 			}
 			
@@ -124,6 +128,7 @@
 			@media only screen and (orientation:landscape){
 				#warning-message {display:none;}
 			}
+			/* Small screens */
 			@media only screen and (orientation:landscape) and (max-width: 800px){
 				#info {
 					font-size: 75%;
@@ -159,16 +164,19 @@
 	<div id="title" class="img-resize">
 		<img src="images/chainspotting.png" alt="Chainspotting">
 	</div>
-	<div id="toolbar" class="ui-widget-header ui-corner-all">
-		<button id="add">add transactions</button>
-		<button id="delete">delete transactions</button>
-		<button id="clear">clear transactions</button>
-		<button id="save">save transaction set</button>
-		<button id="load">load transaction set</button>
-		<button id="settings">settings</button>
-		<button id="help">help</button>
-		<input type="checkbox" id="3d"><label for="3d">3D</label>
-	</div>
+	<!-- Hide toolbar until ready -->
+	<div id="tb_container">
+		<div id="toolbar" class="ui-widget-header ui-corner-all">
+			<button id="add">add transactions</button>
+			<button id="delete">delete transactions</button>
+			<button id="clear">clear transactions</button>
+			<button id="save">save transaction set</button>
+			<button id="load">load transaction set</button>
+			<button id="settings">settings</button>
+			<button id="help">help</button>
+			<input type="checkbox" id="3d"><label for="3d">3D</label>
+		</div>
+	<div>
 	<div id="modules">
 		<select id="module">
 			<option>Transactions</option>
@@ -584,7 +592,7 @@
 			}).click(function () {
 				var dialog = $('#delete-transactions').dialog({
 					resizable: false,
-					height: 350,
+					height: 300,
 					width: 350,
 					modal: true,
 					buttons: [
@@ -642,7 +650,7 @@
 				var dialog = $('#save-set').dialog({
 					resizable: false,
 					height: 200,
-					width: 350,
+					width: 300,
 					modal: true,
 					buttons: [
 						{
@@ -677,7 +685,7 @@
 			}).click(function () {
 				var dialog = $('#load-set').dialog({
 					resizable: false,
-					height: 350,
+					height: 300,
 					width: 350,
 					modal: true,
 					buttons: [
@@ -740,7 +748,7 @@
 			}).click(function () {
 				var dialog = $('#dialog-settings').dialog({
 					resizable: false,
-					height: 350,
+					height: 300,
 					width: 350,
 					modal: true,
 					buttons: [
@@ -834,6 +842,8 @@
 			$('#3d').button('refresh');
 			// Module selector
 			$('#module').selectmenu({width: 150});
+			
+			$('#tb_container').show();
 		});	
 		
 		// Begin data processing
