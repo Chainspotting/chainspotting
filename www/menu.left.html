@@ -1,0 +1,942 @@
+<ul>
+	<li>
+		<a href="#">File</a>
+		<ul>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$.getJSON('sample.json', function(json) {
+					openFile('sample', json);
+				});
+				
+				return false;" title="Loads a sample file.">Sample<hr></a>
+			</li>
+			<li><a onclick="
+				newFile();
+					
+				return false;"
+				title="Creates a new document.">New <span>Ctrl+N</span></a></li>
+			</li>
+			<li><a id="open-menu" onclick="
+				this.jS.clearMenu();
+				load();
+				
+				return false;" 
+				title="Opens a saved document from local storage.">Open... <span>Ctrl+O</span></a>
+			</li>
+			<li><a onclick="
+				save();
+				this.jS.clearMenu();
+				
+				return false;" title="Saves the current document to local storage.">Save <span>Ctrl+S</span></a>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				saveAs();
+				
+				return false;" title="Saves the current document to local storage as a new document.">Save As...<hr></a>
+			</li>
+			<input hidden type=file id='import'>
+			<li><a onclick="
+				this.jS.clearMenu();
+				var a = document.getElementById('import');
+				a.addEventListener('change', function (evt) {
+					var f = evt.target.files[0];
+					
+					if (f) {
+						importFile(f);
+					}					
+				}, false);
+				a.click();
+				
+				return false;" title="Imports document from the local file system.">Import...</a>
+			</li>
+			<a hidden id='export'></a>
+			<li><a onclick="
+				this.jS.clearMenu();
+				var json = JSON.stringify($.sheet.dts.fromTables.json(jS, true));
+				var a = document.getElementById('export');
+				a.href = 'data:text/plain,' + encodeURIComponent(json);
+				a.download = file + '.json';
+				a.click();
+				
+				return false;" title="Exports the current document to the local file system.">Export...</a>
+			</li>
+		</ul>
+	</li>
+	<li>
+		<a href="#">Edit</a>
+		<ul>
+            <li><a onclick="
+				this.jS.clearMenu();
+				this.jS.undo.manager.undo();
+				
+				return false;" title="Undoes last action.">Undo <span>Ctrl+Z</span></a>
+			</li>
+            <li><a onclick="
+				this.jS.undo.manager.redo();
+				this.jS.clearMenu();
+				
+				return false;" title="Redoes last action.">Redo <span>Ctrl+Y</span><hr></a>
+			</li>
+            <li><a onclick="
+				this.jS.clearMenu();
+				copyPasteCut();
+				
+				return false;" title="Cuts data to the clipboard.">Cut <span>Ctrl+X</span></a>
+			</li>
+            <li><a onclick="
+				this.jS.clearMenu();
+				copyPasteCut();
+				
+				return false;" title="Copies data to the clipboard.">Copy <span>Ctrl+C</span></a>
+			</li>
+            <li><a onclick="
+				this.jS.clearMenu();
+				copyPasteCut();
+				
+				return false;" title="Pastes data from the clipboard.">Cut <span>Ctrl+V</span><hr></a>
+			</li>
+			</li>
+            <li><a onclick="
+				this.jS.clearMenu();
+				find();
+				
+				return false;" title="Find data in the current spreadsheet.">Find <span>Ctrl+F</span><hr></a>
+			</li>
+            <li><a onclick="
+				tds = this.jS.highlighted();
+				for (i = 0; i < tds.length; i++) {
+					if(tds[i].getAttribute('rowSpan') || tds[i].getAttribute('colSpan')) {
+						dialog('FYI', 'Please unmerge all cells before merging.');
+						
+						return;
+					}
+				}
+				this.jS.merge();
+				this.jS.clearMenu();
+				
+				return false;" title="Merges selected cells.">Merge</a>
+			</li>
+            <li><a onclick="
+				this.jS.unmerge();
+				this.jS.clearMenu();
+				
+				return false;" title="Ummerges selected cell.">Un-Merge<hr></a>
+			</li>
+            <!--li><a onclick="this.jS.cellFind(); return false;">Find</a></li>
+			<li>
+				<a href="#">Cell</a>
+				<ul>
+					<li><a onclick="this.jS.setCellRef(); return false;">Set Reference</a></li>
+				</ul>
+			</li-->
+			<li>
+				<a menu="menuEditRow_menuInstance">Row <span>&rsaquo;</span></a>
+				<ul>
+					<!--li><a onclick="
+						this.jS.controlFactory.addRow();
+						this.jS.clearMenu();
+						
+						return false;" title="Adds an additional row to bottom of the spreadsheet.">Add Row</a>
+					</li>
+					<li><a onclick="
+						this.jS.controlFactory.addRowMulti();
+						this.jS.clearMenu();
+						
+						return false;" title="Adds an additional rows to bottom of the spreadsheet.">Add Multi-Rows</a>
+					</li-->
+					<li><a onclick="
+						this.jS.deleteRow();
+						this.jS.clearMenu();
+						
+						return false;" title="Deletes the currently selected rows.">Delete Row(s)</a>
+					</li>
+					<li><a onclick="
+						this.jS.controlFactory.addRow(this.jS.cellLast.row, true);
+						this.jS.clearMenu();
+						
+						return false;" title="Inserts row(s) before currently selected row(s).">Insert Row(s) Before</a>
+					</li>
+					<li><a onclick="
+						this.jS.controlFactory.addRow(this.jS.cellLast.row);
+						this.jS.clearMenu();
+						
+						return false;" title="Inserts row(s) after currently selected row(s).">Insert Row(s) After</a>
+					</li>
+					<li><a onclick="
+						this.jS.toggleHide.rowShowAll();
+						this.jS.clearMenu();
+						
+						return false;" title="Show all the hidden rows.">Show All</a>
+					</li>
+					<li><a onclick="
+						this.jS.toggleHide.row();
+						this.jS.clearMenu();
+						
+						return false;" title="Hides or shows the currently selected row.">Toggle Hide Row</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a menu="menuEditColumn_menuInstance">Column <span>&rsaquo;</span></a>
+				<ul>
+					<!--li><a onclick="
+						this.jS.controlFactory.addColumn();
+						this.jS.clearMenu();
+						
+						return false;" title="Adds an additional column to the right of the spreadsheet.">Add Column</a>
+					</li>
+					<li><a onclick="
+						this.jS.controlFactory.addColumnMulti();
+						this.jS.clearMenu();
+						
+						return false;" title="Adds an additional columns to the right of the spreadsheet.">Add Multi-Columns</a>
+					</li-->
+					<li><a onclick="
+						this.jS.deleteColumn();
+						this.jS.clearMenu();
+						
+						return false;" title="Deletes the currently selected columns.">Delete Column(s)</a>
+					</li>
+					<li><a onclick="
+						this.jS.controlFactory.addColumn(this.jS.cellLast.col, true);
+						this.jS.clearMenu();
+						
+						return false;" title="Inserts column(s) before currently selected column(s).">Insert Column(s) Before</a>
+					</li>
+					<li><a onclick="
+						this.jS.controlFactory.addColumn(this.jS.cellLast.col);
+						this.jS.clearMenu();
+						
+						return false;" title="Inserts column(s) after currently selected column(s).">Insert Column(s) After</a>
+					</li>
+					<li><a onclick="
+						this.jS.fillUpOrDown();
+						this.jS.clearMenu();
+						
+						return false;" title="Fill down current cell value.">Fill Down</a>
+					</li>
+					<li><a onclick="
+						this.jS.fillUpOrDown(true);
+						
+						return false;" title="Fill up current cell value.">Fill Up</a>
+					</li>
+					<li><a onclick="
+						this.jS.toggleHide.columnShowAll();
+						this.jS.clearMenu();
+						
+						return false;" title="Show all the hidden columns.">Show All</a>
+					</li>
+					<li><a onclick="
+						this.jS.toggleHide.column();
+						this.jS.clearMenu();
+						
+						return false;" title="Hides or shows the currently selected column.">Toggle Hide Column</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a>Spreadsheet <span>&rsaquo;</span></a>
+				<ul>
+					<li><a onclick="
+						this.jS.addSheet();
+						this.jS.clearMenu();
+						
+						return false;" 
+						title="Creates a new spreadsheet in the current document.">Add Spreadsheet</a>
+					</li>
+					<li><a onclick="
+						this.jS.deleteSheet();
+						this.jS.clearMenu();
+						
+						return false;" title="Delete the current spreadsheet.">Delete Spreadsheet</a>
+					</li>
+					<li><a onclick="
+						this.jS.calc();
+						this.jS.clearMenu();
+						
+						return false;" title="Re-Calculates the current sheet.">Refresh Calculations</a>
+					</li>
+					<li><a onclick="
+						this.jS.sheetTab();
+						this.jS.clearMenu();
+						
+						return false;" title="Change the title of the sheet.">Set Spreadsheet Title...</a>
+					</li>
+                    <!--li><a onclick="
+						this.jS.toggleState();
+						this.jS.clearMenu();
+						
+						return false;" title="Toggle between edit and read-only mode.">Toggle Edit Mode</a>
+					</li-->
+				</ul>
+			</li>
+
+		</ul>
+	</li>
+	<li>
+		<a href="#">Blockchain</a>
+		<ul>
+			<li><a onclick="
+				this.jS.clearMenu();
+				blockchain.current = 'bitcoin';
+				document.getElementById('mainnet').innerHTML = '&#10003';
+				document.getElementById('testnet3').innerHTML = '';
+				
+				return false;" title="Uses the main bitcoin blockchain.">MAINNET <span id="mainnet">
+					<script type="text/javascript">
+						document.getElementById('mainnet').innerHTML = blockchain.current == 'bitcoin' ? '&#10003' : '';
+					</script></span></a>			
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				blockchain.current = 'testnet3';
+				document.getElementById('mainnet').innerHTML = '';
+				document.getElementById('testnet3').innerHTML = '&#10003';
+				
+				return false;" title="Uses the testing blockchain.">TESTNET3 <span id="testnet3">
+					<script type="text/javascript">
+						document.getElementById('testnet3').innerHTML = blockchain.current != 'bitcoin' ? '&#10003' : '';
+					</script></span><hr></a>			
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#container').setCellFormula('=BTCADDR', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+					this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+				this.jS.cellEdit(this.jS.obj.tdActive());
+				this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+				
+				return false;" title="Returns data about a bitcoin address.">BTCADDR(<i>addr,data_type,conf</i>)</a>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#container').setCellFormula('=BTCTRN', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+					this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+				this.jS.cellEdit(this.jS.obj.tdActive());
+				this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+				
+				return false;" title="Returns data about a bitcoin transaction.">BTCTRN(<i>hash,data_type</i>)</a>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#container').setCellFormula('=BTCOPRET', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+					this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+				this.jS.cellEdit(this.jS.obj.tdActive());
+				this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+				
+				return false;" title="Returns data about an OP-RETURN transaction.">BTCOPRET(<i>hash,data_type</i>)</a>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#container').setCellFormula('=BTCFIND', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+					this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+				this.jS.cellEdit(this.jS.obj.tdActive());
+				this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+				
+				return false;" title="Returns a transaction associated with a bitcoin address.">BTCFIND(<i>addr,data_type,num</i>)</a>
+			</li>
+		</ul>
+	</li>
+	<li>
+		<a href="#">Other</a>
+		<ul>
+			<li>
+				<a>Standard <span>&rsaquo;</span></a>
+				<ul>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=ABS', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the absolute value of a number.">ABS(<i>num</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=AVERAGE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the average of a set of numbers.">AVERAGE(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=CEILING', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a number rounded up based on a multiple of significance.">CEILING(<i>num1,signif</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=COUNT', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the number of cells in the argument list.">COUNT(<i>val1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=DAYSFROM', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the number of days from the current day.">DAYSFROM(<i>yyyy,mm,dd</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=DOLLAR', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a number to text, using a currency format.">DOLLAR(<i>num,dec,sym</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=FALSE()', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a logical value of FALSE.">FALSE(<i></i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=FIXED', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a number rounded to a specified number of decimal places, with or without commas.">FIXED(<i>num,dec,no-commas</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=FLOOR', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a number rounded down based on a multiple of significance.">FLOOR(<i>num1,signif</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=FN', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Executes Javascript.">FN(<i>script</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=INT', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the integer portion of a number.">INT(<i>num</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=MAX', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the largest value of the argument list.">MAX(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=MIN', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the smallest value of the argument list.">MIN(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=N', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a value converted to a number.">N(<i>val</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=N', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a value converted to a number.">N(<i>val</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=NOW()', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the current date and time.">NOW(<i></i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=PI()', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the constant Pi.">PI(<i></i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=POWER', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a number raised to a given power.">POWER(<i>num,power</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=RAND', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a random number between 0 and 1.">RAND(<i></i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=ROUND', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a number rounded to a specified number of digits.">ROUND(<i>num,digits</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=SUM', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the sum of the numbers in the argument list.">SUM(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=TODAY()', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the current date.">TODAY(<i></i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=TRUE()', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a logical value of TRUE.">TRUE(<i></i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=VALUE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns a text value that represents a number to a number.">VALUE(<i>text</i>)</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">Finance <span>&rsaquo;</span></a>
+				<ul>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=FV', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the present value of an investment.">FV(<i>rate,nper,pmt,pv,type</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=IPMT', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the interest rate for an investment.">IPMT(<i>rate,per,nper,pv,fv,type</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=NPER', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the number of periods for an investment.">NPER(<i>rate,pmt,pv,fv,type</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=NPV', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the net present value of an investment.">NPV(<i>rate,val1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=PMT', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the periodic payment for an annuity.">PMT(<i>rate,nper,pv,fv,type</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=PV', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the present value of an investment.">PV(<i>rate,nper,pmt,fv,type</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=RATE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the present value of an investment.">RATE(<i>nper,pmt,pv,fv,type,guess</i>)</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">Advanced <span>&rsaquo;</span></a>
+				<ul>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=COMBINATION', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the number of combinations for a given number of objects.">COMBINATION(<i>num,num_chosen</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=CORR_COEFF', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the correlation coefficient between two data sets.">CORR_COEFF(<i>array1,array2</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=COVARIANCE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the average of the products of paired deviations.">COVARIANCE(<i>array1,array2</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=FACTORIAL', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the factorial of a number.">FACTORIAL(<i>num</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=GAMMA', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the natural logarithm of the gamma function.">GAMMA(<i>x</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=MEDIAN', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the median value of the argument list.">MEDIAN(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=MODE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the most common value in the argument list.">MODE(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=NEGBIN', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the negative binomial distribution.">NEGBIN(<i>num_f,num_s,prob_s</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=PERMUTATION', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the number of permutations for a given number of objects.">PERMUTATION(<i>num,num_chosen</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=QUARTILES', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the quartile of a data set.">QUARTILES(<i>array,quart</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=STDEV', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the estimated standard deviation based on a sample.">STDEV(<i>num1,...</i>)</a>
+					</li>
+					<li><a onclick="
+						this.jS.clearMenu();
+						$('#container').setCellFormula('=VARIANCE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+							this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+						this.jS.cellEdit(this.jS.obj.tdActive());
+						this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+						
+						return false;" title="Returns the estimated variance based on a sample.">VARIANCE(<i>num1,...</i>)</a>
+					</li>
+				</ul>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#dialog-help').load('queries.functions.html', function () {
+					help();
+				});
+				
+				return false;" title="Learn about more functions available in this module.">More...</a>
+			</li>
+		</ul>
+	</li>
+	<li>
+		<a href="#">Format</a>
+		<ul>
+			<li>
+				<a>Number <span>&rsaquo;</span><hr></a>
+				<ul>
+					<li><a onclick="
+						this.jS.cellTypeToggle('percent');
+						this.jS.clearMenu();
+						
+						return false;" title="Percentage formatting.">Percent <span id="percent">
+							<script type="text/javascript">
+								document.getElementById('percent').innerHTML = Globalize.format(0.14261, 'p');
+							</script></span></a>
+					</li>
+					<li><a onclick="
+						this.jS.cellTypeToggle('number');
+						this.jS.clearMenu();
+						
+						return false;" title="Number formatting.">Number <span id="number">
+							<script type="text/javascript">
+								document.getElementById('number').innerHTML = Globalize.format(1426.14, 'n');
+							</script></span></a>
+					</li>
+					<li><a onclick="
+						this.jS.cellTypeToggle('date');
+						this.jS.clearMenu();
+						
+						return false;" title="Date formatting.">Date <span id="date">
+							<script type="text/javascript">
+								document.getElementById('date').innerHTML = Globalize.format(new Date(1426143600000), 'd');
+							</script></span></a>
+					</li>
+					<li><a onclick="
+						this.jS.cellTypeToggle('time');
+						this.jS.clearMenu();
+						
+						return false;" title="Time formatting.">Time <span id="time">
+							<script type="text/javascript">
+								document.getElementById('time').innerHTML = Globalize.format(new Date(1426143600000), 'd');
+							</script></span></a>
+					</li>
+					<li><a onclick="
+						this.jS.cellTypeToggle('currency');
+						this.jS.clearMenu();
+						
+						return false;" title="Currency formatting.">Currency <span id="currency">
+							<script type="text/javascript">
+								document.getElementById('currency').innerHTML = Globalize.format(1426.14, 'c');
+							</script></span></a>
+					</li>
+					<li><a onclick="
+						this.jS.cellTypeToggle(null);
+						this.jS.clearMenu();
+						
+						return false;" title="Remove formatting.">Remove Format</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a>Font Size <span>&rsaquo;</span><hr></a>
+				<ul>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.fontReSize('up');
+						
+						return false;" title="Increase font size.">Font Size +</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.fontReSize('down');
+						
+						return false;" title="Decrease font size.">Font Size -</a>
+					</li>
+				</ul>
+			</li>
+			<li><a class="cellStyleToggle" onclick="
+				this.jS.cellStyleToggle('styleBold');
+				this.jS.clearMenu();
+				
+				return false;" title="Apply a bold typeface.">Bold</a>
+			</li>
+			<li><a class="cellStyleToggle" onclick="
+				this.jS.cellStyleToggle('styleItalics');
+				this.jS.clearMenu();
+				
+				return false;" title="Apply an italic typeface.">Italics</a>
+				</li>
+			<li><a class="cellStyleToggle" onclick="
+				this.jS.cellStyleToggle('styleUnderline', 'styleLineThrough');
+				this.jS.clearMenu();
+				
+				return false;" title="Apply an underline typeface.">Underline</a></li>
+			<li><a class="cellStyleToggle" onclick="
+				this.jS.cellStyleToggle('styleLineThrough', 'styleUnderline');
+				this.jS.clearMenu();
+				
+				return false;" title="Apply a strikethrough typeface.">Strike Through<hr></a>
+			</li>
+			<li>
+				<a>Align <span>&rsaquo;</span><hr></a>
+				<ul>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleLeft', 'styleCenter styleRight');
+						this.jS.clearMenu();
+						
+						return false;" title="Left-align the cell.">Left</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleCenter', 'styleLeft styleRight');
+						this.jS.clearMenu();
+						
+						return false;" title="Center-align the cell.">Center</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleRight', 'styleLeft styleCenter');
+						this.jS.clearMenu();
+						
+						return false;" title="Right-align the cell.">Right<hr></a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleTop', 'styleMiddle styleBottom');
+						this.jS.clearMenu();
+						
+						return false;" title="Top-align the cell.">Top</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleMiddle', 'styleTop styleBottom');
+						this.jS.clearMenu();
+						
+						return false;" title="Middle-align the cell.">Middle</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleBottom', 'styleTop styleMiddle');
+						this.jS.clearMenu();
+						
+						return false;" title="Bottom-align the cell.">Bottom</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a>Case <span>&rsaquo;</span><hr></a>
+				<ul>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleUpper', 'styleCapital styleLower');
+						this.jS.clearMenu();
+						
+						return false;" title="Change text to uppercase.">Uppercase</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleCapital', 'styleUpper styleLower');
+						this.jS.clearMenu();
+						
+						return false;" title="Capitalize text.">Capitalize</a>
+					</li>
+					<li><a class="cellStyleToggle" onclick="
+						this.jS.cellStyleToggle('styleLower', 'styleCapital styleUpper');
+						this.jS.clearMenu();
+						
+						return false;" title="Change text to lowercase.">Lowercase</a>
+					</li>
+				</ul>
+			</li>
+			<li><a class="cellStyleToggle" onclick="
+				this.jS.cellStyleToggle('styleWrap');
+				this.jS.clearMenu();
+				
+				return false;" title="Wrap long text.">Wrap Text</a></li>
+		</ul>
+	</li>
+	<li>
+		<a href="#">Help</a>
+		<ul>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#dialog-help').load('queries.help.html', function () {
+					help();
+				});
+				
+				return false;" title="Learn how to use this module.">About</a>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				dialog('FYI', 'You can get a cell range by using <b>Shift</b> while dragging.');
+				
+				return false;" title="Learn how to obtain a cell range.">Cell Ranges</a>
+			</li>
+		</ul>
+	</li>
+</ul>

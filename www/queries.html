@@ -1,0 +1,814 @@
+<!--
+	Chainspotting: Queries
+	Written by Colin Cohen
+	(C)opyright 2015 by Chainspotting
+	
+	A spreadsheet interface for processing real-time blockchain data.
+-->
+
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>Chainspotting: Queries</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+		<meta http-equiv="Pragma" content="no-cache"/>
+		<meta http-equiv="Expires" content="-1"/>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+		<meta content="utf-8" http-equiv="encoding"/>
+		<link rel='shortcut icon' href='images/favicon.ico?v1' type='image/x-icon'/ >
+		<link rel="stylesheet" type="text/css" href="third-party/jquery.sheet.css">
+		<!-- JQuery styles -->
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+		<style type="text/css">
+		
+			html {
+				height: 100%;
+			}
+			
+			body {
+				margin: 0;
+				padding: 0;
+				background: #FFFFFF;
+				color: #000000;
+				font-family: sans-serif;
+				font-size: 13px;
+				line-height: 20px;
+				height: 100%;
+			}
+			
+			#container {
+				height: 85%;
+				width: 98%;
+				top: 80px;
+				margin-left: auto;
+				margin-right: auto;
+				z-index: 0;
+			}
+			
+			#title {
+				position: absolute;
+				top: 10px;
+				width: 120px;
+				height: 60px;
+				left: 10px;
+			}
+			
+			#title img {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				width: 100%;
+				height: auto;
+			}
+		
+			#modules_container {
+				display: none;
+			}
+
+			#modules {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+			}
+
+			#info {
+				font-size: 10px;
+				text-align: center;
+				position: absolute;
+				top: 10px;
+				left: 0;
+				right: 0;
+				width: 200px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			
+			#info span {
+				font-size: 12px;
+			}
+
+			bull {
+				padding: 0 5px;
+				color: #555;
+			}
+						
+			.ui-icon-alert {
+				-ms-transform: scale(1.1); /* IE 9 */
+				-webkit-transform: scale(1.1); /* Chrome, Safari, Opera */
+				transform: scale(1.1);
+			}
+			
+			.disable {
+				opacity: 0.5;
+			}
+			
+			.cs-highlight {
+				outline: 2px solid #0073EA;
+			}
+			
+			.cs-handle {
+				background-color: #0073EA;
+			}
+			
+			.cs-menu {
+				background-color: rgba(0, 0, 0, 0.0);
+			}
+			
+			.cs-menu-background {
+				background-color: #BBB;
+			}
+			
+			.cs-menu a:hover {
+				color: #FFF;
+			}
+			
+			.cs-menu hr {
+				margin-left: -4px;
+				width: 99%;
+			}
+			
+			.cs-menu span {
+				margin-right: 10px;
+				color: #666;
+				float: right;
+			}
+			
+			/* Mobile style sheets */
+			@media only screen and (max-width: 480px) {
+			}
+			
+			/* Require landscape mode on mobile */
+			#warning-message {
+				display: none;
+				height: 90%;
+				position: absolute;
+				text-align: center;
+				top: 50%;
+				left: 0;
+				right: 0;
+			}
+			@media only screen and (orientation:portrait) and (max-width: 480px){
+				#container {display:none;}
+				#info {display:none;}
+				#modules {display:none;}
+				#warning-message {display:block;}
+			}
+			@media only screen and (orientation:landscape){
+				#warning-message {display:none;}
+			}
+			/* Small screens */
+			@media only screen and (orientation:landscape) and (max-width: 800px){
+				#info {
+					font-size: 75%;
+				}
+				
+				#title img {
+					width: 75%;
+					height: auto;
+				}
+								
+				#container {
+					height: 70%;
+				}
+			}
+						
+		</style>
+	</head>
+	<body>
+	<div id="container"></div>
+	<div id="warning-message">
+		<b>Please Switch To Landscape Mode<b>
+	</div>
+	<div id="info">
+		<b>&copy; copyright 2015 by chainspotting<br><span><a href="https://github.com/Chainspotting/chainspotting">source</a> <span class="bull">&bull; <a href="mailto:pabitel@yahoo.com">contact</a></b></span>
+	</div>
+	<div id="title" class="img-resize">
+		<img src="images/chainspotting.png" alt="Chainspotting">
+	</div>
+	<div id="modules_container">
+		<div id="modules">
+			<select id="module">
+			</select>
+		</div>
+	</div>
+	<div id="sheet-title" title="Spreadsheet Title" style="display: none">
+		<form>
+			<label for="title-name">Name</label>
+			<input style="width: 100%" type="text" name="title-name" id="title-name" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="save" title="Save Document Locally" style="display: none">
+		<form>
+			<label for="save-name">Name</label>
+			<input style="width: 100%" type="text" name="save-name" id="save-name" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="load" title="Load Document from Local Storage" style="display: none">
+		<form>
+			<label for="load-menu">ID</label>
+			<select style="width: 100%" name="load-menu" id="load-menu">
+			</select>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="find" title="Find" style="display: none">
+		<form>
+			<label for="find-data">Name</label>
+			<input style="width: 100%" type="text" name="find-data" id="find-data" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-info" style="display: none" title=""></div>
+	<div id="dialog-yes" style="display: none" title=""></div>
+	<div id="dialog-help" title="Help"></div>
+	
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="modules.js"></script>
+	<script type="text/javascript" src="third-party/globalize.min.js"></script>
+	<script type="text/javascript" src="third-party/MouseWheel.js"></script>
+	<script type="text/javascript" src="third-party/undomanager.js"></script>
+	<script type="text/javascript" src="third-party/jquery.nearest.min.js"></script>
+	<script type="text/javascript" src="third-party/jquery.elastic.source.js"></script>
+	<script type="text/javascript" src="third-party/jquery.sheet.min.js"></script>
+	<script type="text/javascript" src="third-party/jquery.sheet.financefn.min.js"></script>
+	<script type="text/javascript" src="third-party/jquery.sheet.advancedfn.min.js"></script>
+	<script type="text/javascript" src="third-party/jquery.sheet.dts.min.js"></script>
+	<script type="text/javascript" src="third-party/jquery.sheet.bitcoin.js"></script>
+	<script type="text/javascript" src="third-party/formula.min.js"></script>
+	<script type="text/javascript" src="third-party/tsv.min.js"></script>
+	<!-- main() -->
+	<script type="text/javascript">
+	
+		// Chain-specific globals
+		var api_key_id = '9ecfd9aef5cf34b6e800c3da7171296e';
+		var chain_data = 'https://api.chain.com/v2/';
+		var chain_notify = 'wss://ws.chain.com/v2/notifications';
+		var connect = null;
+		// JQuery.Sheet-specific globals
+		var jS;
+		var settings;
+		// Other globals;
+		var docs = docCount();
+		var file = '';
+		// Blockchain object
+		var blockchain = {
+			value: 'bitcoin',
+			get current() {
+				return this.value;
+			},
+			set current(bc) {
+				this.value = bc;
+			}
+		};
+		// Real-time data object
+		var rtd = {
+			data: null,
+			requests: null,
+			// Initialize 3d-array structure
+			reset: function () {
+				this.data = [[[{hash: '', dataType: '', conf: 'false', num: 'l', value: null}]]];
+				this.requests = [];
+			},
+			// Initialize arrays when needed
+			check: function (sheet, row, col) {
+				if (this.data[sheet] == null)
+					this.data[sheet] = [];
+				if (this.data[sheet][row] == null)
+					this.data[sheet][row] = [];
+				if (this.data[sheet][row][col] == null)
+					this.data[sheet][row][col] = [];
+			},
+			// Getters and setters
+			getData: function (type, sheet, row, col) {
+				this.check(sheet, row, col);
+				
+				return eval('this.data[sheet][row][col].' + type);
+			},
+			setData: function (type, sheet, row, col, val) {
+				this.check(sheet, row, col);
+				
+				eval('this.data[sheet][row][col].' + type + ' = "' + val + '"');
+			},
+			getValue: function (sheet, row, col) {
+				this.check(sheet, row, col);
+				
+				return this.data[sheet][row][col].value;
+			},
+			setValue: function (sheet, row, col, value) {
+				this.check(sheet, row, col);
+				
+				this.data[sheet][row][col].value = value;
+				jS.calc(sheet, true);
+			},
+			// Tell function to recalcuate itself upon new data for hash
+			notify: function (hash) {
+				for (i = 0; i < this.data.length; i++) {
+					for (j = 0; j < this.data[i].length; j++) {
+						if (this.data[i][j] == null)
+							continue;
+						for (k = 0; k < this.data[i][j].length; k++) {
+							if (this.data[i][j][k] == null)
+								continue;
+							if (hash == this.data[i][j][k].hash) {
+								this.setValue(i, j, k, null);
+							}
+						}
+					}
+				}
+			},
+			// Subscribe to data for a hash
+			request: function (type, hash) {
+				if ($.inArray(hash, this.requests) == -1) {
+					this.requests.push(hash);
+					addRequest(type, hash);
+				}
+			},
+		};
+		rtd.reset();
+		var invalid = '#INVALID';
+		var retrieving = 'Retrieving . . .';
+		
+		// Find the number of saved documents
+		function docCount() {
+			var cnt = 0;
+			var id = 'queries';
+			
+			for (i = 0; i < localStorage.length; i++) {
+				key = localStorage.key(i);
+				if (key.indexOf(id) == 0 && key.length > id.length) {
+					cnt++;
+				}
+			}
+			
+			return (cnt);
+		}
+		
+		// main()
+		$(function () {			
+			// Build spreadsheet menus
+			$(document.createElement('div')).load('menu.right.html', function() {
+				var menuRight = this.children[0];
+				$(document.createElement('div')).load('menu.left.html', function() {
+					var menuLeft = this.children[0];
+				
+					settings = {
+						menuLeft: function () {
+							jS = this;
+							var menu = $(menuLeft);
+						
+							//Give anchors access to jS them
+							menu.find('a').each(function() {
+								this.jS = jS;
+							});
+						
+							return menu;
+						},
+						menuRight: function () {
+							jS = this;
+							var menu = $(menuRight);
+						
+							//Give anchors access to jS them
+							menu.find('a').each(function() {
+								this.jS = jS;
+							});
+						
+							return menu;
+						}
+					};
+					// Load blank spreadhseet
+					$('#container').sheet(settings);
+					jS.newSheet();
+					jS.cellSetHome();
+					if (docs == 0) {
+						$('#open-menu').addClass('disable');
+					}
+				});
+			});
+			// Module selector
+			new Modules(1);
+			$('#modules_container').show();
+		});
+		
+		// Change title of a spreadsheet (as opposed to a document composed of potentially many spreadsheets
+		function title(sheetTab, callback) {
+			var dialog = $('#sheet-title').dialog({
+				resizable: false,
+				height: 200,
+				width: 300,
+				modal: true,
+				buttons: [
+					{
+						id: 'save-button',
+						text: 'Save',
+						click: function () {
+							var newTitle = $('#title-name').val();
+							
+							if (!newTitle) {
+								sheetTab = jS.obj.table().attr('title');
+								newTitle = (sheetTab ? sheetTab : jS.msg.sheetTitleDefault.replace(/[{]index[}]/gi, jS.i + 1));
+							} else {
+								jS.setDirty(true);
+								jS.obj.table().attr('title', newTitle);
+								jS.obj.tab().html(newTitle);
+								sheetTab = newTitle;
+							}
+							if (callback) {
+								callback($(document.createElement('div')).text(sheetTab).html());
+							}
+							
+							dialog.dialog('close');
+						}
+					},
+					{
+						id: 'cancel-button',
+						text: 'Cancel',
+						click: function() {
+							dialog.dialog('close');
+						}
+					}
+				],
+				open: function(event, ui) {
+					jS.toggleHeader(false);
+				},
+				close: function(event, ui) {
+					jS.toggleHeader(true);
+				}
+			});
+		}
+		
+		// Create a file in local storage
+		function create(doc, newFile) {
+			var json = $.sheet.dts.fromTables.json(jS, true);
+			localStorage.setItem('queries' + doc, JSON.stringify(json));
+			if (newFile) {
+				if (docs == 0) {
+					$('#open-menu').removeClass('disable');
+				}
+				docs++;
+			}
+			// Change document name in header
+			if (file != doc) {
+				file = doc;
+				var html = $.sheet.dts.toTables.json(json);
+				$('#container').html(html);
+				settings.title = file;
+				$('#container').sheet(settings);
+			}
+		}
+		
+		// Save a document in local storage
+		function save() {
+			if (file == '') {
+				saveAs();
+			} else {
+				create(file, false);
+			}
+		}
+		
+		// Save a document with a new name
+		function saveAs() {
+			var dialog = $('#save').dialog({
+				resizable: false,
+				height: 200,
+				width: 300,
+				modal: true,
+				buttons: [
+					{
+						id: 'save-button',
+						text: 'Save',
+						click: function () {
+							var doc = $('#save-name').val();
+							if (doc) {
+								if (localStorage.getItem('queries' + doc)) {
+									dialog.dialog('close');
+									yes('Warning', 'Overwrite existing document?', function (ok) {
+										if (ok) {
+											create(doc, false);
+										}
+									});
+								} else {
+									dialog.dialog('close');
+									create(doc, true);
+								}
+							} else {
+								dialog.dialog('close');
+							}
+						}
+					},
+					{
+						id: 'cancel-button',
+						text: 'Cancel',
+						click: function() {
+							dialog.dialog('close');
+						}
+					}
+				],
+				open: function(event, ui) {
+					jS.toggleHeader(false);
+				},
+				close: function(event, ui) {
+					jS.toggleHeader(true);
+				}
+			});
+		}
+		
+		//Build file menu
+		function menuBuild() {
+			var opts = [];
+			var key;
+			var id = 'queries';
+			for (i = 0; i < localStorage.length; i++) {
+				key = localStorage.key(i);
+				if (key.indexOf(id) == 0 && key.length > id.length) {
+					opts.push('<option>' + key.substring(id.length, key.length) + '</option>');
+				}
+			}
+			$('#load-menu')
+				.find('option').remove().end()
+				.append(opts.sort());
+		}
+		
+		// Load a document
+		function load() {
+			if (docs > 0) {
+				loadData();
+			}
+		}
+		
+		// Open a file
+		function openFile(name, json) {
+			rtd.reset();
+			$('#container').html($.sheet.dts.toTables.json(json));
+			settings.title = file = name;
+			$('#container').sheet(settings);
+			jS.cellSetHome();
+		}
+			
+		// Load data from a document
+		function loadData() {
+			var dialog = $('#load').dialog({
+				resizable: false,
+				height: 300,
+				width: 350,
+				modal: true,
+				buttons: [
+					{
+						id: 'load-button',
+						text: 'Open',
+						click: function () {
+							var name = $('#load-menu').val();
+							openFile(name, JSON.parse(localStorage.getItem('queries' + name)));
+							dialog.dialog('close');
+						}
+					},
+					{
+						id: 'delete-button',
+						text: 'Delete',
+						click: function () {
+							yes('Warning', 'Delete document from local storage?', function (ok) {
+								if (ok) {
+									localStorage.removeItem('queries' + $('#load-menu').val());
+									$('#load-menu').find('option').remove().end();
+									$('#load-menu').selectmenu('destroy');
+									menuBuild();
+									$('#load-menu').selectmenu({ style: 'dropdown' });
+									docs--;
+									if (docs == 0) {
+										$('#load-button').button('disable');
+										$('#delete-button').button('disable');
+										$('#open-menu').addClass('disable');
+									}
+								}
+							});
+						}
+					},
+					{
+						id: 'cancel-button',
+						text: 'Cancel',
+						click: function() {
+							dialog.dialog('close');
+						}
+					}
+				],
+				create: function(event, ui) {
+					$('#load').css('overflow', 'hidden');
+				},
+				open: function(event, ui) {
+					jS.toggleHeader(false);
+				},
+				close: function(event, ui) {
+					jS.toggleHeader(true);
+				}
+			});
+			menuBuild();
+			$('#load-menu')
+				.selectmenu()
+				.selectmenu('menuWidget')
+					.addClass('overflow');
+			$('#load-menu')[0].selectedIndex = 0;
+			$('#load-menu').selectmenu('refresh');
+		}
+		
+		// Import document from the local file system
+		function importFile(fobj) {
+			var reader = new FileReader();
+			reader.onload = function (evt) {
+				var json = JSON.parse(evt.target.result);
+				
+				rtd.reset();
+				$('#container').html($.sheet.dts.toTables.json(json));
+				file = fobj.name.substring(0, fobj.name.indexOf('.'));
+				settings.title = file;
+				$('#container').sheet(settings);
+				jS.cellSetHome();
+			}
+			reader.readAsText(fobj);
+		}
+		
+		// Find something and go to the cell
+		function find()
+		{
+			findData(function (data) {
+				this.jS.cellFind(data);
+			});
+		}
+		
+		// Find data in the spreadsheet
+		function findData(callback) {
+			var dialog = $('#find').dialog({
+				resizable: false,
+				height: 200,
+				width: 300,
+				modal: true,
+				buttons: [
+					{
+						id: 'find-button',
+						text: 'Find',
+						click: function () {
+							dialog.dialog('close');
+							callback($('#find-data').val());
+						}
+					},
+					{
+						id: 'cancel-button',
+						text: 'Cancel',
+						click: function() {
+							dialog.dialog('close');
+						}
+					}
+				],
+				open: function(event, ui) {
+					jS.toggleHeader(false);
+				},
+				close: function(event, ui) {
+					jS.toggleHeader(true);
+				}
+			});
+		}
+		
+		// Display a generic dialog box
+		function dialog(title, msg) {
+			$('#dialog-info').html(msg);
+			$('#dialog-info').dialog({
+				resizable: false,
+				modal: true,
+				buttons: {
+					OK: function () {
+						$(this).dialog('close');
+					}
+				},
+				open: function(event, ui) {
+					$('#dialog-info').show();
+					$('#dialog-info').dialog('option', 'title', title);
+					jS.toggleHeader(false);
+				},
+				close: function(event, ui) {
+					jS.toggleHeader(true);
+				}
+			});
+		}
+		
+		// Warning message about copying, cutting, and pasting
+		function copyPasteCut() {
+			dialog('FYI', '<b>Cut</b>, <b>Copy</b>, and <b>Paste</b> commands are available <i>only</i> through Ctrl-X, Ctrl-C, and Ctrl-V respectively.');
+		}
+		
+		// Generic confirmation dialog
+		function yes(title, msg, callback) {
+			$('#dialog-yes').html(msg);
+			$('#dialog-yes').dialog({
+				resizable: false,
+				modal: true,
+				buttons: {
+					OK: function () {
+						$(this).dialog('close');
+						callback(true);
+					},
+					Cancel: function () {
+						$(this).dialog('close');
+						callback(false);
+					}
+				},
+				open: function(event, ui) {
+					$('#dialog-yes').show();
+					$('#dialog-yes').dialog('option', 'title', title);
+					jS.toggleHeader(false);
+				},
+				close: function(event, ui) {
+					jS.toggleHeader(true);
+				}
+			});
+		}
+		
+		// Create a new spreadsheet
+		function newFile() {
+			yes('Warning', 'Clear current document?', function (ok) {
+				if (ok) {
+					rtd.reset();
+					jS.newSheet();
+					jS.cellSetHome();
+					file = '';
+				} else {
+					jS.clearMenu();
+				}
+			});
+		}
+		
+		// Help dialog
+		function help() {
+			var dialog = $('#dialog-help').dialog({
+				resizable: false,
+				height: $(window).height() * 0.75,
+				width: $(window).width() * 0.75,
+				modal: true,
+				buttons: [
+					{
+						id: 'ok-button',
+						text: 'OK',
+						click: function() {
+							dialog.dialog('close');
+						}
+					}
+				],
+				open: function () {
+					jS.toggleHeader(false);
+				},
+				close: function () {
+					jS.toggleHeader(true);
+				}
+			});
+		}
+		
+		// Begin data processing
+		window.onload = function() {
+			start();
+		}
+		
+		// Close WebSocket
+		$(window).bind('beforeunload', function() {
+			connect.close();
+		});
+		
+		// WebSocket request for a hash
+		function addRequest(type, hash) {			
+			switch (type) {
+				case 'address':
+					var request = {block_chain: blockchain.current, type: 'address', address: hash};
+					connect.send(JSON.stringify(request));
+					break;
+				case 'transaction':
+					var request = {block_chain: blockchain.current, type: 'transaction', transaction_hash: hash};
+					connect.send(JSON.stringify(request));
+					break;
+			}
+		}
+		
+		// Connect to Chain's server
+		function start() {
+			if (window.MozWebSocket) {
+				window.WebSocket = window.MozWebSocket;
+			}
+			
+			// Open communication
+			connect = new WebSocket(chain_notify);
+			connect.onopen = function (event) {
+			};
+			// Process Chain notifications
+			connect.onmessage = function (event) {
+				var data = JSON.parse(event.data);
+				if (data.payload.type == 'address' && data.payload.confirmations < 2) {
+					rtd.notify(data.payload.address);
+				} else if (data.payload.type == 'transaction') {
+					rtd.notify(data.payload.transaction.hash);
+				}
+			};
+			connect.onerror = function (event) {
+				dialog('Error', 'Data connection lost. Please reload app.');
+			};
+		}
+	</script>
+	</body>
+</html>

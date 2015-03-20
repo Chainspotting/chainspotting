@@ -1,0 +1,27 @@
+<center><b>Chainspotting: Queries</b></center>
+<p>This module of Chainspotting allows you to process real-time blockchain data within a spreadsheet.</p>
+</p>In addition to standard spreadsheet features, you can use the following functions, which will automatically update based on activity on the blockchain:</p>
+<table border="0" cellpadding="1" cellspacing="10" width="100%">
+	<tbody>
+		<tr>
+			<td><strong>BTCADDR(</strong><em>addr,data_type,conf</em><strong>)</strong></td>
+			<td>Returns data about a bitcoin address referenced by <em>addr</em>. <em>data_type</em> can currently be &quot;balance,&quot; &quot;sent,&quot; or &quot;received,&quot; and <em>conf </em>(either <strong>true</strong> or <strong>false</strong>) determines whether or not the values returned are confirmed amounts.</td>
+		</tr>
+		<tr>
+			<td><strong>BTCTRN(</strong><em>hash,data_type</em><strong>)</strong></td>
+			<td>Returns data about a bitcoin transaction referenced by <em>hash</em>. data_type can currently be &quot;confirmations,&quot; &quot;amount,&quot; or &quot;fees.&quot;</td>
+		</tr>
+		<tr>
+			<td><strong>BTCOPRET(</strong><em>hash,data_type</em><strong>)</strong></td>
+			<td>Returns data about an OP-RETURN transaction referenced by <em>hash</em>. data_type can currently be &quot;hex&quot; or &quot;text.&quot;</td>
+		</tr>
+		<tr>
+			<td><strong>BTCFIND(</strong><em>addr,data_type,num</em><strong>)</strong></td>
+			<td>Returns a transaction associated with a bitcoin address referenced by <em>addr</em>. data_type can currently be normal &quot;transactions&quot; or &quot;op-returns&quot; and <em>num </em>determines which transaction you want. For example, if you want the latest transaction (or OP-RETURN transaction), enter <b>1</b>.</td>
+		</tr>
+	</tbody>
+</table>
+<p>These functions operate on the main blockchain unless you select <b>TESTNET3</b> from the <b>Blockchain</b> menu.</p>
+<p><b>NOTE:</b> To create a cell range for these functions (and the standards ones) use <b>Shift</b> while dragging.
+<p>No user data is saved on any server, nor are cookies used in any way. When you load or save a document, the app uses local storage. Keep in mind local storage may be limited on your system. It can also difficult to backup or restore data to and from it. Therefore, you should <b>Export</b> important files to your local file system. You can also later <b>Import</b> these files.
+<p><i>Custom development of this app</i> and integration of it into your pipeline is available upon request, by clicking the <b>contact</b> button on the top of the screen. You can also view the module's source code on GitHub by clicking the <b>source</b> button.
