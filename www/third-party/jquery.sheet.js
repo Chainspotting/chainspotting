@@ -3993,13 +3993,15 @@ $.sheet = {
                                         return jS.evt.document.cut(e);
                                     }
                                 case key.Y:
-                                    if (e.ctrlKey) {
+                                    if (e.ctrlKey && !jS.cellLast.isEdit) {
+										jS.lastRedo = new Date();
                                         jS.evt.document.redo(e);
                                         return false;
                                     }
                                     break;
                                 case key.Z:
-                                    if (e.ctrlKey) {
+                                    if (e.ctrlKey && !jS.cellLast.isEdit) {
+										jS.lastUndo = new Date();
                                         jS.evt.document.undo(e);
                                         return false;
                                     }
@@ -4284,18 +4286,30 @@ $.sheet = {
                                         }
                                         break;
                                     case key.Y:
-                                        if (e.ctrlKey) {
-                                            jS.evt.document.redo(e);
-                                            return false;
+                                        if (e.ctrlKey && !jS.cellLast.isEdit) {
+											var now = new Date();
+											if (jS.lastRedo && now - jS.lastRedo < 100) {
+												return false;
+											} else {
+												jS.lastRedo = now;
+												jS.evt.document.redo(e);
+												return false;
+											}
                                         } else {
                                             td.trigger('cellEdit');
                                             return true;
                                         }
                                         break;
                                     case key.Z:
-                                        if (e.ctrlKey) {
-                                            jS.evt.document.undo(e);
-                                            return false;
+                                        if (e.ctrlKey && !jS.cellLast.isEdit) {
+											var now = new Date();
+											if (jS.lastUndo && now - jS.lastUndo < 100) {
+												return false;
+											} else {
+												jS.lastUndo = now;
+												jS.evt.document.undo(e);
+												return false;
+											}
                                         } else {
                                             td.trigger('cellEdit');
                                             return true;

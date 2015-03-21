@@ -301,7 +301,9 @@
 				this.check(sheet, row, col);
 				
 				this.data[sheet][row][col].value = value;
-				jS.calc(sheet, true);
+				jS.calcCell(sheet, row, col, true);
+				cell = jS.getCell(row, col, sheet);
+				jS.calcDependencies.call(cell, cell.calcDependenciesLast);
 			},
 			// Tell function to recalcuate itself upon new data for hash
 			notify: function (hash) {
@@ -443,7 +445,7 @@
 		function create(doc, newFile) {
 			var json = $.sheet.dts.fromTables.json(jS, true);
 			localStorage.setItem('queries' + doc, JSON.stringify(json));
-			if (newFile) {
+			if (newFile || docs == 0) {
 				if (docs == 0) {
 					$('#open-menu').removeClass('disable');
 				}
