@@ -3847,7 +3847,9 @@ $.sheet = {
 									$(td).addClass(jS.copiedClasses[j]);
 								}
 							}
+							$(td).css("font-size", ((jS.copiedSize || 10)) + "px");
 						}
+						jS.cellTypeToggle(jS.copiedType);
 					}
 
                     //at this point we need to check if there is even a cell selected, if not, we can't save the information, so clear formula editor
@@ -4143,9 +4145,12 @@ $.sheet = {
                             var tds = jS.highlighted(true),
                                 formula = jS.obj.formula(),
                                 oldValue = formula.val(),
-                                cellsTsv = jS.toTsv(tds, clearValue);
+                                cellsTsv = jS.toTsv(tds, clearValue),
+								cellType = tds[0].cellType;
 								tds = jS.highlighted();
 								jS.copiedClasses = tds[0].className.split(/\s+/);
+								jS.copiedType = cellType;
+								jS.copiedSize = ($(tds[0]).css("font-size") + '').replace("px", "") * 1;
 
                             formula
                                 .val(cellsTsv)

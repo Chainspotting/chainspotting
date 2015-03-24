@@ -333,7 +333,16 @@
 				this.jS.cellEdit(this.jS.obj.tdActive());
 				this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
 				
-				return false;" title="Returns a transaction associated with a bitcoin address.">BTCFIND(<i>addr,data_type,num</i>)</a>
+				return false;" title="Returns a transaction associated with a bitcoin address.">BTCFIND(<i>addr,data_type,num</i>)<hr></a>
+			</li>
+			<li><a onclick="
+				this.jS.clearMenu();
+				$('#container').setCellFormula('=BTCPRICE', this.jS.getTdLocation(jS.obj.tdActive()).row, 
+					this.jS.getTdLocation(this.jS.obj.tdActive()).col, this.jS.i);
+				this.jS.cellEdit(this.jS.obj.tdActive());
+				this.jS.controlFactory.inPlaceEdit(this.jS.obj.tdActive());
+				
+				return false;" title="Returns the most current bitcoin price.">BTCPRICE(<i>curr</i>)</a>
 			</li>
 		</ul>
 	</li>

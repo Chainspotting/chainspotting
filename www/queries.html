@@ -266,11 +266,12 @@
 		// Real-time data object
 		var rtd = {
 			data: null,
-			requests: null,
+			requests: {hash: [], type: []},
 			// Initialize 3d-array structure
 			reset: function () {
 				this.data = [[[{hash: '', dataType: '', conf: 'false', num: 'l', value: null}]]];
-				this.requests = [];
+				this.requests.hash = [];
+				this.requests.type = [];
 			},
 			// Initialize arrays when needed
 			check: function (sheet, row, col) {
@@ -301,6 +302,7 @@
 				this.check(sheet, row, col);
 				
 				this.data[sheet][row][col].value = value;
+				// Calculate cell and its dependencies
 				jS.calcCell(sheet, row, col, true);
 				cell = jS.getCell(row, col, sheet);
 				jS.calcDependencies.call(cell, cell.calcDependenciesLast);
@@ -323,11 +325,17 @@
 			},
 			// Subscribe to data for a hash
 			request: function (type, hash) {
-				if ($.inArray(hash, this.requests) == -1) {
-					this.requests.push(hash);
+				if ($.inArray(hash, this.requests.hash) == -1) {
+					this.requests.hash.push(hash);
+					this.requests.type.push(type);
 					addRequest(type, hash);
 				}
 			},
+			requestAll: function() {
+				for (i = 0; i < this.requests.hash.length; i++) {
+					addRequest(this.requests.type[i], this.requests.hash[i]);
+				}
+			}
 		};
 		rtd.reset();
 		var invalid = '#INVALID';
@@ -788,6 +796,20 @@
 			}
 		}
 		
+		// TODO: Reconnect to Chain's server
+/*		function restart() {
+			// Open communication
+			connect = new WebSocket(chain_notify);
+			console.log('Attempting reconnection...');
+			if (!connect) {
+				// If no connection, try again in 5 seconds
+				setTimeout(restart, 5000);
+			} else {
+				// Reissue requests
+				rtd.requestAll(); 
+			}
+		}*/
+		
 		// Connect to Chain's server
 		function start() {
 			if (window.MozWebSocket) {
@@ -805,9 +827,13 @@
 					rtd.notify(data.payload.address);
 				} else if (data.payload.type == 'transaction') {
 					rtd.notify(data.payload.transaction.hash);
+				} else if (data.payload.type == 'heartbeat') {
+					rtd.notify('btcprice');
 				}
 			};
 			connect.onerror = function (event) {
+				// TODO: Automatic reconnect
+/*				restart();*/
 				dialog('Error', 'Data connection lost. Please reload app.');
 			};
 		}

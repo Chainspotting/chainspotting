@@ -9,15 +9,19 @@
 		</tr>
 		<tr>
 			<td><strong>BTCTRN(</strong><em>hash,data_type</em><strong>)</strong></td>
-			<td>Returns data about a bitcoin transaction referenced by <em>hash</em>. data_type can currently be &quot;confirmations,&quot; &quot;amount,&quot; or &quot;fees.&quot;</td>
+			<td>Returns data about a bitcoin transaction referenced by <em>hash</em>. <em>data_type</em> can currently be &quot;confirmations,&quot; &quot;amount,&quot; or &quot;fees.&quot;</td>
 		</tr>
 		<tr>
 			<td><strong>BTCOPRET(</strong><em>hash,data_type</em><strong>)</strong></td>
-			<td>Returns data about an OP-RETURN transaction referenced by <em>hash</em>. data_type can currently be &quot;hex&quot; or &quot;text.&quot;</td>
+			<td>Returns data about an OP-RETURN transaction referenced by <em>hash</em>. <em>data_type</em> can currently be &quot;hex&quot; or &quot;text.&quot;</td>
 		</tr>
 		<tr>
 			<td><strong>BTCFIND(</strong><em>addr,data_type,num</em><strong>)</strong></td>
-			<td>Returns a transaction associated with a bitcoin address referenced by <em>addr</em>. data_type can currently be normal &quot;transactions&quot; or &quot;op-returns&quot; and <em>num </em>determines which transaction you want. For example, if you want the latest transaction (or OP-RETURN transaction), enter <b>1</b>.</td>
+			<td>Returns a transaction associated with a bitcoin address referenced by <em>addr</em>. <em>data_type</em> can currently be normal &quot;transactions&quot; or &quot;op-returns&quot; and <em>num </em>determines which transaction you want. For example, if you want the latest transaction (or OP-RETURN transaction), enter <b>1</b>.</td>
+		</tr>
+		<tr>
+			<td><strong>BTCPRICE(</strong><em>curr</em><strong>)</strong></td>
+			<td>Returns the most current bitcoin price from blockchain.info for the specified <em>curr</em>. <em>curr</em> can currently be one of the following: <b>AUD BRL CAD CHF CLP CNY DKK EUR GBP HKD ISK JPY KRW NZD PLN RUB SEK SGD THB TWD USD</b>.</td>
 		</tr>
 	</tbody>
 </table>
