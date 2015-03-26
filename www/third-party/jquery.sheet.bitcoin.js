@@ -149,7 +149,7 @@
 			}
 		},
 		// Get a bitcoin price
-		BTCPRICE(curr, obj) {
+		BTCPRICE: function(curr, obj) {
 			var td = obj.td;
 			var loc = obj.jS.getTdLocation(td);
 			var hash = 'btcprice'
