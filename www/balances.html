@@ -1,0 +1,1023 @@
+<!--
+	Chainspotting: Balances
+	Written by Colin Cohen
+	(C)opyright 2015 by Chainspotting.co
+	
+	Visually tracks the balances of bitcoin addresses in real-time, in the form of a combination line/bar graph.
+-->
+
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>Chainspotting: Balances</title>
+		<meta charset="utf-8">
+		<link rel='shortcut icon' href='images/favicon.ico?v1' type='image/x-icon'/ >
+		<!-- JQuery styles -->
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+		<style type="text/css">
+		
+			html {
+				height: 100%;
+			}
+			
+			body {
+				margin: 0;
+				padding: 0;
+				background: #FFFFFF;
+				color: #000000;
+				font-family: sans-serif;
+				font-size: 13px;
+				line-height: 20px;
+				height: 100%;
+			}
+			
+			#container {
+				height: 90%;
+			}
+			
+			#title {
+				position: absolute;
+				top: 10px;
+				width: 120px;
+				height: 60px;
+				left: 10px;
+			}
+			
+			#title img {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				width: 100%;
+				height: auto;
+			}
+		
+			#modules {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+			}
+
+			#info {
+				font-size: 10px;
+				text-align: center;
+				position: absolute;
+				top: 10px;
+				left: 0;
+				right: 0;
+				width: 200px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			
+			#info span {
+				font-size: 12px;
+			}
+
+			bull {
+				padding: 0 5px;
+				color: #555;
+			}
+			
+			#tb_container {
+				display: none;
+			}
+
+			#toolbar {
+				position: absolute;
+				display: flex;
+				flex-flow: row wrap;
+				justify-content: space-around;
+				align-items: center;
+				padding: 5px;
+				width: 450px;
+				left: 0;
+				right: 0;
+				margin-left: auto;
+				margin-right: auto;
+				font-size: 13px;
+				bottom: 10px;
+			}
+			
+			.overflow {
+				height: 200px;
+				width: 200px;
+			}
+			
+			.currency_overflow {
+				height: 325px;
+			}
+			
+			/* Mobile style sheets */
+			@media only screen and (max-width: 480px) {
+			}
+			
+			/* Require landscape mode on mobile */
+			#warning-message {
+				display: none;
+				height: 90%;
+				position: absolute;
+				text-align: center;
+				top: 50%;
+				left: 0;
+				right: 0;
+			}
+			@media only screen and (orientation:portrait) and (max-width: 480px){
+				#container {display:none;}
+				#toolbar {display:none;}
+				#info {display:none;}
+				#modules {display:none;}
+				#warning-message {display:block;}
+			}
+			@media only screen and (orientation:landscape){
+				#warning-message {display:none;}
+			}
+			/* Small screens */
+			@media only screen and (orientation:landscape) and (max-width: 800px){
+				#info {
+					font-size: 75%;
+				}
+				
+				#title img {
+					width: 75%;
+					height: auto;
+				}
+				
+				#toolbar {
+					padding: 3px;
+				}
+								
+				#container {
+					height: 90%;
+				}
+			}
+			
+		</style>
+	</head>
+	<body>
+
+	<div id="container"></div>
+	<div id="warning-message">
+		<b>Please Switch To Landscape Mode<b>
+	</div>
+	<div id="info">
+		<b>&copy; copyright 2015 by chainspotting.co<br><span><a href="https://github.com/Chainspotting/chainspotting">source</a> <span class="bull">&bull; <a href="mailto:hello@chainspotting.co">contact</a></b></span>
+	</div>
+	<div id="title" class="img-resize">
+		<img src="images/chainspotting.png" alt="Chainspotting">
+	</div>
+	<!-- Hide toolbar until ready -->
+	<div id="tb_container">
+		<div id="toolbar" class="ui-widget-header ui-corner-all">
+			<button id="add">add balances</button>
+			<button id="delete">delete balances</button>
+			<button id="clear">clear balances</button>
+			<button id="save">save address set</button>
+			<button id="load">load address set</button>
+			<button id="settings">settings</button>
+			<button id="help">help</button>
+			<select style="width: 100%" name="currency-menu" id="currency-menu">
+				<option>BTC</option>
+				<option>AUD</option>
+				<option>BRL</option>
+				<option>CAD</option>
+				<option>CHF</option>
+				<option>CLP</option>
+				<option>CNY</option>
+				<option>DKK</option>
+				<option>EUR</option>
+				<option>GBP</option>
+				<option>HKD</option>
+				<option>ISK</option>
+				<option>JPY</option>
+				<option>KRW</option>
+				<option>NZD</option>
+				<option>PLN</option>
+				<option>RUB</option>
+				<option>SEK</option>
+				<option>SGD</option>
+				<option>THB</option>
+				<option>TWD</option>
+				<option>USD</option>
+			</select>
+			<input type="checkbox" id="conf"><label for="conf">CONF</label>
+		</div>
+	<div>
+	<div id="modules">
+		<select id="module">
+		</select>
+	</div>
+	<div id="add-addresses" title="Add Addresses" style="display: none">
+		<form>
+			<label for="add-id">ID</label>
+			<input style="width: 100%" type="text" name="add-id" id="add-id" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="delete-addresses" title="Delete" style="display: none">
+		<form>
+			<label for="delete-menu">ID</label>
+			<select style="width: 100%" name="delete-menu" id="delete-menu">
+			</select>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-error" style="display: none" title="Error"></div>
+	<div id="save-set" title="Save Address Set" style="display: none">
+		<form>
+			<label for="save-name">Name</label>
+			<input style="width: 100%" type="text" name="save-name" id="save-name" value="" class="text ui-widget-content ui-corner-all">
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="load-set" title="Load Address Set" style="display: none">
+		<form>
+			<label for="load-menu">ID</label>
+			<select style="width: 100%" name="load-menu" id="load-menu">
+			</select>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-settings" style="display: none" title="Settings">
+		<form>
+			<label for="block-chain-menu">Blockchain</label>
+			<select style="width: 100%" name="block-chain-menu" id="block-chain-menu">
+				<option>MAINNET</option>
+				<option>TESTNET3</option>
+			</select>
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</form>
+	</div>
+	<div id="dialog-yes" style="display: none" title=""></div>
+	<div id="dialog-help" style="display: none" title="Help"></div>
+	
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script>
+	<script type="text/javascript" src="//code.highcharts.com/highcharts-3d.js"></script>
+	<script type="text/javascript" src="modules.js"></script>
+	<!-- main() -->
+	<script type="text/javascript">
+	
+		// Chain-specific globals
+		var api_key_id = '9ecfd9aef5cf34b6e800c3da7171296e';
+		var chain_data = 'https://api.chain.com/v2/';
+		var chain_notify = 'wss://ws.chain.com/v2/notifications';
+		// Other globals
+		var bi_data = 'https://blockchain.info/ticker?cors=true';
+		var prices = {};
+		var form = null;
+		var connect = null;
+		var chart = null;
+		var options = null;
+		var opening = '<b>press the "+" button to add addresses</b>';
+		var sets = set_count();
+		
+		// Find the number of saved selection sets
+		function set_count() {
+			var cnt = 0;
+			var id = 'balances';
+			
+			for (i = 0; i < localStorage.length; i++) {
+				key = localStorage.key(i);
+				if (key.indexOf(id) == 0 && key.length > id.length) {
+					cnt++;
+				}
+			}
+			
+			return (cnt);
+		}
+		
+		// Use local storage to save and load user data
+		function saveOptions() {
+			localStorage.setItem('balances', JSON.stringify(options));
+		}
+		
+		function loadOptions() {
+			options = JSON.parse(localStorage.getItem('balances'));
+			if (options) {
+				options.tooltip.formatter = tooltip;
+			}
+		}
+				
+		// Stop tracking a bitcoin address
+		function deleteAddress(hash) {
+			var index = $.inArray(hash, options.addresses);
+			
+			options.addresses.splice(index, 1);
+			options.balances.splice(index, 1);
+			if (options.addresses.length == 0) {
+				$('#delete').button('option', 'disabled', true)
+				$('#clear').button('option', 'disabled', true)
+				$('#delete-button').button('disable');
+			}
+			if (chart.series[0].data.length == 0) {
+				setChartTitle(opening, false);
+			}
+			saveOptions();
+		}
+		
+		// Compute the total balance for all addresses
+		function getBalance() {
+			var len = options.addresses.length;
+			var balance = 0;
+			var price = 1;
+			
+			if (options.currency != 'BTC') {
+				var expr = 'prices.' + options.currency + '.last';
+				price = eval(expr);
+			}
+			
+			for (i = 0; i < len; i++) {
+				balance += options.balances[i] * price;
+			}
+			
+			return balance;
+		}
+		
+		// Set chart title
+		function setChartTitle(title, update) {
+			chart.xAxis[0].setTitle({text: title}, update);
+			options.xAxis.title.text = title;
+		}
+		
+		// Set chart range
+		function setChartRange() {
+			var range = chart.yAxis[0].getExtremes();
+			chart.yAxis[0].setExtremes(Math.max(0, range.dataMin - 1), range.dataMax + 1, true);
+		}
+		
+		// Add a balance to the graph
+		function addBalance() {
+			var shift = true;
+			
+			setChartTitle('', false);
+			if (chart.series[0].data.length < 12) {
+				shift = false;
+			}
+			chart.series[0].addPoint([(new Date()).getTime(), getBalance()], true, shift);
+			setChartRange();
+		}
+		
+		// Add a bitcoin address
+		function addAddress(hash, data) {
+			// Build requested data element
+			var expr = 'data[0].' + (options.confirmed ? 'confirmed.' : 'total.') + 'balance' + ' * 0.00000001';
+			var val = eval(expr);
+			options.addresses.push(hash);
+			options.balances.push(val);
+			newChart();
+			if ($('#delete').button('option', 'disabled') == true) {
+				$('#delete').button('option', 'disabled', false)
+				$('#clear').button('option', 'disabled', false)
+			}
+			addRequest(hash, 'address');
+		}
+		
+		// Update a bitcoin address
+		function updateAddress(hash, data) {
+			// Build requested data element
+			var expr = 'data[0].' + (options.confirmed ? 'confirmed.' : 'total.') + 'balance' + ' * 0.00000001';
+			var val = eval(expr);
+			var index = $.inArray(hash, options.addresses);
+			options.balances[index] = val;
+			addRequest(hash, 'address');
+			if (index == options.addresses.length - 1) {
+				newChart();
+			}
+
+		}
+		
+		// Load Chain data
+		function loadData(hash, suc, err) {
+			var url = chain_data + options.block_chain + '/addresses/' + hash;
+								
+			// Obtain address data from Chain
+			$.ajax({
+				url: url,
+				data: {'api-key-id': api_key_id},
+				type: 'GET',
+				success: function(data) {
+					suc(hash, data);
+				},
+				error: err
+			});
+		}
+		
+		// Create a new chart
+		function newChart() {
+			chart.destroy();
+			chart = new Highcharts.Chart(options);
+			if (options.addresses.length > 0) {
+				addBalance();
+			} else {
+				setChartTitle(opening);
+			}
+			saveOptions();
+		}
+			
+		// Remove all balances from the graph
+		function clear() {
+			var len = options.addresses.length;
+			for (i = 0; i < len; i++) {
+				deleteAddress(options.addresses[i]);
+			}
+			newChart();
+		}
+			
+		// Generic error dialog
+		function error(msg) {
+			$('#dialog-error').html(msg);
+			$('#dialog-error').dialog({
+				resizable: false,
+				modal: true,
+				buttons: {
+					OK: function () {
+						$(this).dialog('close');
+					}
+				},
+				create: function(event, ui) {
+					$('#dialog-error').show();
+				}
+			});
+		}
+			
+		// Generic confirmation dialog
+		function yes(title, msg, callback) {
+			$('#dialog-yes').html(msg);
+			$('#dialog-yes').dialog({
+				resizable: false,
+				modal: true,
+				buttons: {
+					OK: function () {
+						$(this).dialog('close');
+						callback(true);
+					},
+					Cancel: function () {
+						$(this).dialog('close');
+						callback(false);
+					}
+				},
+				open: function(event, ui) {
+					$('#dialog-yes').show();
+					$('#dialog-yes').dialog('option', 'title', title);
+				},
+			});
+		}
+		
+		// Point tooltip
+		function tooltip() {
+			var bal = '<table>';
+			var seg = ''
+			var price = 1;
+			var len = options.addresses.length;
+			
+			if (options.currency != 'BTC') {
+				var expr = 'prices.' + options.currency + '.last';
+				price = eval(expr);
+			}
+			
+			for (i = 0; i < len; i++) {
+				bal += '<tr>';
+				if (options.currency != 'BTC') {
+					seg = (options.balances[i] * price).toLocaleString(undefined, 
+						{style: 'currency', currency: options.currency});
+				} else {
+					seg = 'BTC' + options.balances[i].toLocaleString();
+				}
+				bal += '<td>' + options.addresses[i].substring(0, 15) + '...</td>' + 
+					'<td style="text-align: right">' + seg + '</td></tr>'; 
+			}
+			
+			bal += '</table><center>';
+			if (options.currency != 'BTC') {
+				bal += '<b>' + this.y.toLocaleString(undefined, {style: 'currency', currency: options.currency});
+			} else {
+				bal += '<b>BTC' + this.y.toLocaleString();
+			}	
+			bal += (options.confirmed ? ' (CONFIRMED)' : ' (TOTAL)') + '</b></center>';
+							
+			return '<center>' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '</center>' + bal;
+		}
+		
+		// main()
+		$(function () {
+			loadOptions();
+			
+			// Highcharts options
+			Highcharts.setOptions({
+				global: {
+					useUTC: false
+				},
+			});
+			
+			var defOptions = {	
+				chart: {
+					renderTo: 'container',
+					type: 'line',
+					animation: Highcharts.svg,
+					margin: 100,
+					marginBottom: 100,
+				},
+				title: {
+					text: null
+				},
+				legend: {enabled: false},
+				credits: {enabled: false},
+				plotOptions: {
+					series: {
+						marker: {
+							radius: 3
+						}
+					}
+				},
+				xAxis: {
+					labels: {
+//						rotation: -45,
+						useHTML: true,
+						format: '{value: %I:%M:%S}',
+						style: {
+							fontSize: '13px',
+							fontFamily: 'Verdana, sans-serif'
+						}
+					},
+					title: {
+						text: opening,
+						style: {
+							fontSize: '13px',
+							fontFamily: 'Verdana, sans-serif'
+						}
+					},
+					type: 'datetime',
+					tickPixelInterval: 150,
+				},
+				yAxis: {
+					title: {
+						text: '<b>balance</b>',
+						style: {
+							fontSize: '13px',
+							fontFamily: 'Verdana, sans-serif'
+						}
+					},
+					plotLines: [{
+						value: 0,
+						width: 1,
+						color: '#808080'
+					}],
+					min: 0,
+					allowDecimals: false
+				},
+				series: [{
+					name: 'balances',
+/*					data: [(new Date()).getTime(), 0],*/
+				}],
+				tooltip: {
+					formatter: tooltip,
+					useHTML: true,
+				},
+				// Module-specific variables
+				addresses: [],
+				block_chain: 'bitcoin',
+				currency: 'BTC',
+				balances: [],
+				confirmed: false,
+			};
+			
+			// Set or restore options
+			if (!options) {
+				options = defOptions;
+			} else {
+				options.chart = defOptions.chart;
+				options.title = defOptions.title;
+				options.legend = defOptions.legend;
+				options.credits = defOptions.credits;
+				options.plotOptions = defOptions.plotOptions;
+				options.xAxis = defOptions.xAxis;
+				if (options.addresses.length > 0) {
+					options.xAxis.title.text = '<b>Retrieveing Data . . .</b>';
+				}
+				options.yAxis = defOptions.yAxis;
+				options.series = defOptions.series;
+				options.tooltip = defOptions.tooltip;
+				saveOptions();
+			}
+			
+			chart = new Highcharts.Chart(options);
+			
+			// Build JQuery dropdown menus
+			function delMenuBuild() {
+				var opts = [];
+				for (i = 0; i < options.addresses.length; i++) {
+					opts[i] = '<option>' + options.addresses[i] + '</option>';
+				}
+				$('#delete-menu')
+					.append(opts);
+			}
+			
+			function setMenuBuild() {
+				var opts = [];
+				var key;
+				var id = 'balances';
+				for (i = 0; i < localStorage.length; i++) {
+					key = localStorage.key(i);
+					if (key.indexOf(id) == 0 && key.length > id.length) {
+						opts.push('<option>' + key.substring(id.length, key.length) + '</option>');
+					}
+				}
+				$('#load-menu')
+					.append(opts);
+			}
+			
+			function create(set, newSet) {
+				localStorage.setItem('balances' + set, JSON.stringify(options));
+				if (newSet) {
+					sets++;
+					if ($('#load').button('option', 'disabled') == true) {
+						$('#load').button('option', 'disabled', false)
+					}
+				}
+			}
+			
+			// Process toolbar buttons
+			// Add address
+			$('#add').button({
+				text: false,
+				icons: {primary: 'ui-icon-plus'}
+			}).click(function () {
+				$('#add-id').val('');
+				var dialog = $('#add-addresses').dialog({
+					resizable: false,
+					height: 200,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'add-button',
+							text: 'Add',
+							click: function () {
+								var hash = $('#add-id').val();
+								
+								if ($.inArray(hash, options.addresses) == -1) {
+									loadData(hash, addAddress, function() {
+										error('Invalid Address');
+									});
+								} else {
+									error('Address Already Exists');
+								}
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Close',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					]
+				});
+				form = dialog.find('form');
+			});
+			// Delete addresses
+			$('#delete').button({
+				text: false,
+				disabled: options.addresses.length > 0 ? false : true,
+				icons: { primary: 'ui-icon-minus' }
+			}).click(function () {
+				var dialog = $('#delete-addresses').dialog({
+					resizable: false,
+					height: 300,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'delete-button',
+							text: 'Delete',
+							click: function () {
+								deleteAddress($('#delete-menu').val());
+								$('#delete-menu').find('option').remove().end();
+								$('#delete-menu').selectmenu('destroy');
+								delMenuBuild();
+								$('#delete-menu').selectmenu({ style: 'dropdown' });
+								newChart();
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Close',
+							click: function() {
+								dialog.dialog('close');
+								$('#delete-menu').find('option').remove().end();
+								$('#delete-menu').selectmenu('destroy');
+								$('#delete-menu').selectmenu({ style: 'dropdown' });
+							}
+						}
+					],
+					create: function(event, ui) {
+						$('#delete-transactions').css('overflow', 'hidden');
+					}
+				});
+				delMenuBuild();
+				$('#delete-menu')
+					.selectmenu()
+					.selectmenu('menuWidget')
+						.addClass('overflow');
+				$('#delete-menu')[0].selectedIndex = 0;
+				$('#delete-menu').selectmenu('refresh');
+			});
+			// Clear all balances
+			$('#clear').button({
+				text: false,
+				disabled: options.addresses.length > 0 ? false : true,
+				icons: { primary: 'ui-icon-close' }
+			}).click(function () {
+				yes('Warning', 'Clear current data?', function (ok) {
+					if (ok) {
+						clear();
+					}
+				});
+			});
+			// Save and load address selections sets
+			$('#save').button({
+				text: false,
+				icons: { primary: 'ui-icon-arrowthick-1-s' }
+			}).click(function () {
+				var dialog = $('#save-set').dialog({
+					resizable: false,
+					height: 200,
+					width: 300,
+					modal: true,
+					buttons: [
+						{
+							id: 'save-button',
+							text: 'Save',
+							click: function () {
+								var set = $('#save-name').val();
+								if (set) {
+									if (localStorage.getItem('balances' + set)) {
+										dialog.dialog('close');
+										yes('Warning', 'Overwrite existing set?', function (ok) {
+											if (ok) {
+												create(set, false);
+											}
+										});
+									} else {
+										dialog.dialog('close');
+										create(set, true);
+									}
+								} else {
+									dialog.dialog('close');
+								}
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Cancel',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					]
+				});
+			});
+			$('#load').button({
+				text: false,
+				disabled: sets > 0 ? false : true,
+				icons: { primary: 'ui-icon-arrowthick-1-n' }
+			}).click(function () {
+				var dialog = $('#load-set').dialog({
+					resizable: false,
+					height: 300,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'load-button',
+							text: 'Load',
+							click: function () {
+								setChartTitle('<b>Retrieving data . . .</b>');
+								var loadedOptions = JSON.parse(localStorage.getItem('balances' + $('#load-menu').val()));
+								options.addresses = loadedOptions.addresses;
+								options.balances = loadedOptions.balances;
+								options.currency = loadedOptions.currency;
+								$('#currency-menu').val(options.currency);
+								if (options.addresses.length > 0) {
+									$('#delete').button('option', 'disabled', false)
+									$('#clear').button('option', 'disabled', false)
+								}
+								
+								var len = options.addresses.length;
+								for (i = 0; i < len; i++) {
+									loadData(options.addresses[i], updateAddress);
+								}
+								
+								dialog.dialog('close');
+							}
+						},
+						{
+							id: 'delete-button',
+							text: 'Delete',
+							click: function () {
+								yes('Warning', 'Delete selection set?', function (ok) {
+									if (ok) {
+										localStorage.removeItem('balances' + $('#load-menu').val());
+										$('#load-menu').find('option').remove().end();
+										$('#load-menu').selectmenu('destroy');
+										setMenuBuild();
+										$('#load-menu').selectmenu({ style: 'dropdown' });
+										sets--;
+										if (sets == 0) {
+											$('#load').button('option', 'disabled', true)
+											$('#load-button').button('disable');
+											$('#delete-button').button('disable');
+										}
+									}
+								});
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Cancel',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					],
+					create: function(event, ui) {
+						$('#load-set').css('overflow', 'hidden');
+					}
+				});
+				setMenuBuild();
+				$('#load-menu')
+					.selectmenu()
+					.selectmenu('menuWidget')
+						.addClass('overflow');
+				$('#load-menu')[0].selectedIndex = 0;
+				$('#load-menu').selectmenu('refresh');
+			});
+			// Settings
+			$('#settings').button({
+				text: false,
+				icons: { primary: 'ui-icon-gear' }
+			}).click(function () {
+				var dialog = $('#dialog-settings').dialog({
+					resizable: false,
+					height: 250,
+					width: 350,
+					modal: true,
+					buttons: [
+						{
+							id: 'ok-button',
+							text: 'OK',
+							click: function() {
+								var old_chain = options.block_chain;
+								options.block_chain = $('#block-chain-menu').val() == 'TESTNET3' ? 'testnet3' : 'bitcoin';
+								if (old_chain != options.block_chain) {
+									clear();
+								}
+								dialog.dialog('close');
+							}
+						},
+						{
+							id: 'cancel-button',
+							text: 'Cancel',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					],
+					create: function(event, ui) {
+						$('#dialog-settings').css('overflow', 'hidden');
+					}
+				});
+				$('#block-chain-menu')
+					.val(options.block_chain == 'testnet3' ? 'TESTNET3' : 'MAINNET')
+					.selectmenu();
+			});
+			$('#help').button({
+				text: false,
+				icons: { primary: 'ui-icon-help' }
+			}).click(function () {
+				var dialog = $('#dialog-help').dialog({
+					resizable: false,
+					height: $(window).height() * 0.75,
+					width: $(window).width() * 0.75,
+					modal: true,
+					buttons: [
+						{
+							id: 'ok-button',
+							text: 'OK',
+							click: function() {
+								dialog.dialog('close');
+							}
+						}
+					],
+				});
+			});
+			$('#dialog-help').load('balances.help.html');
+			// Currency menu
+			$('#currency-menu')
+				.val(options.currency)
+				.selectmenu({width: 85, 
+					position: {my: 'center bottom', at: 'center bottom', collision: 'flipfit'},
+					change: function (event, data) {
+						options.currency = data.item.label;
+						newChart();
+					},
+				})
+				.selectmenu('menuWidget')
+					.addClass('currency_overflow');
+			// Toggle confirmed balances
+			$('#conf').button()
+				.prop('checked', options.confirmed)
+				.click(function () {
+					if ($('#conf').is(':checked')) {
+						options.confirmed = true;
+					} else {
+						options.confirmed = false;
+					}
+					setChartTitle('<b>Retrieving data . . .</b>');
+					var len = options.addresses.length;
+					for (i = 0; i < len; i++) {
+						loadData(options.addresses[i], updateAddress);
+					}
+				});
+			$('#conf').button('refresh');
+			// Module selector
+			new Modules(0);
+			
+			$('#tb_container').show();
+		});	
+		
+		// Retrieve blockchain.info prices
+		function getPrices(func) {
+			$.ajax({
+				url: bi_data,
+				type: 'GET',
+				success: function(data) {
+					prices = data;
+					if (func) {
+						func();
+					}
+				},
+			});				
+		}
+		
+		// Begin data processing
+		window.onload = function() {
+			getPrices();
+			start();
+		}
+		
+		// Close WebSocket
+		$(window).bind('beforeunload', function() {
+			connect.close();
+		});
+		
+		// Request transactions data from Chain
+		function addRequest(hash, type) {
+			if (type == 'address') {
+				var request = {block_chain: options.block_chain, type: type, address: hash};
+				connect.send(JSON.stringify(request));
+			}
+		}
+		
+		// Connect to Chain's server
+		function start() {
+			if (window.MozWebSocket) {
+				window.WebSocket = window.MozWebSocket;
+			}
+						
+			// Open communication
+			connect = new WebSocket(chain_notify);
+			connect.onopen = function (event) {
+				// Update data from previous run
+				var len = options.addresses.length;
+				
+				for (i = 0; i < len; i++) {
+					loadData(options.addresses[i], updateAddress);
+				}
+			};
+			// Process Chain notifications
+			connect.onmessage = function (event) {
+				var data = JSON.parse(event.data);
+				if (data.payload.type == 'address') {
+					if (!options.confirmed && data.payload.confirmations == 0 ||
+						options.confirmed && data.payload.confirmations == 1) {
+							var val = (data.payload.received - data.payload.sent) * 0.00000001;
+							if (val != 0) {
+								var index = $.inArray(data.payload.address, options.addresses);
+								options.balances[index] += val;
+								addBalance();
+							}
+					}
+				} else if (data.payload.type == 'heartbeat') {
+					getPrices(options.addresses.length > 0 ? addBalance : null);
+				}
+			};
+			connect.onerror = function (event) {
+				error('Data connection lost. Please reload app.');
+			};
+		}
+	
+	</script>
+	</body>
+</html>
