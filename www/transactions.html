@@ -32,7 +32,7 @@
 			}
 			
 			#container {
-				height: 90%;
+				height: 95%;
 			}
 			
 			#title {
@@ -282,11 +282,19 @@
 		
 		function loadOptions() {
 			options = JSON.parse(localStorage.getItem('transactions'));
+			if (options) {
+				options.tooltip.formatter = tooltip;
+			}
+		}
+		
+		// Set chart title
+		function setChartTitle(title, update) {
+			chart.xAxis[0].setTitle({text: title}, update);
 		}
 		
 		// Add a blockchain transaction to the bar graph
-		function addTransactionHash(hash, confirm) {
-			chart.xAxis[0].setTitle({text: ''}, false);
+		function addTransactionHash(hash, confirm, push) {
+			setChartTitle('', false);
 			// Build legend link to blockchain.info
 			var trans = hash.substring(0, 5) + '...';
 			var server = (options.block_chain == 'bitcoin') ? 'blockchain.info/tx/' : 'www.biteasy.com/testnet/transactions/';
@@ -298,8 +306,9 @@
 				$('#delete').button('option', 'disabled', false)
 				$('#clear').button('option', 'disabled', false)
 			}
-//			options = chart.options;
-			options.transactions.push(hash);
+			if (push) {
+				options.transactions.push(hash);
+			}
 			saveOptions();
 			// Start tracking transaction confirmations
 			addRequest(hash, 'transaction');
@@ -322,7 +331,7 @@
 						if (data[i].confirmations > options.max_confirm) {
 							more = false;
 						} else if ($.inArray(data[i].hash, options.transactions) == -1) {
-							addTransactionHash(data[i].hash, data[i].confirmations);
+							addTransactionHash(data[i].hash, data[i].confirmations, true);
 						}
 						i++;
 					}
@@ -355,7 +364,7 @@
 				$('#delete-button').button('disable');
 			}
 			if (chart.series[0].data.length == 0) {
-				chart.xAxis[0].setTitle({text: opening}, false);
+				setChartTitle(opening, false);
 			}
 			options = chart.options;
 			saveOptions();
@@ -428,81 +437,105 @@
 			});
 		}
 		
+		// Bar tooltip
+		function tooltip() {
+			return options.transactions[this.x] + ': <b>' + this.y + '</b>';
+		}
+		
 		// main()
 		$(function () {
-			// Temporarily uncomment after changes to the options object
-//			localStorage.removeItem('transactions');
 			loadOptions();
+			
 			// Highcharts options
-			if (options == null) {
-				options = {	
-					chart: {
-						renderTo: 'container',
-						type: 'column',
-						zoomType: 'x',
-						panning: true,
-						panKey: 'shift',
-						margin: 100,
-						marginBottom: 150,
-						options3d: {
-							enabled: false,
-							alpha: 10,
-							beta: 25,
-							depth: 70
+			var defOptions = {	
+				chart: {
+					renderTo: 'container',
+					type: 'column',
+					zoomType: 'x',
+					panning: true,
+					panKey: 'shift',
+					margin: 100,
+					marginBottom: 150,
+					options3d: {
+						enabled: false,
+						alpha: 10,
+						beta: 25,
+						depth: 70
+					}
+				},
+				title: {
+					text: null
+				},
+				legend: {enabled: false},
+				credits: {enabled: false},
+				plotOptions: {
+					column: {
+						depth: 50
+					}
+				},
+				xAxis: {
+					labels: {
+						rotation: -45,
+						useHTML: true,
+						style: {
+							fontSize: '13px',
+							fontFamily: 'Verdana, sans-serif'
 						}
 					},
 					title: {
-						text: null
-					},
-					legend: {enabled: false},
-					credits: {enabled: false},
-					plotOptions: {
-						column: {
-							depth: 50
+						text: opening,
+						style: {
+							fontSize: '13px',
+							fontFamily: 'Verdana, sans-serif'
 						}
 					},
-					xAxis: {
-						labels: {
-							rotation: -45,
-							useHTML: true,
-							style: {
-								fontSize: '13px',
-								fontFamily: 'Verdana, sans-serif'
-							}
-						},
-						title: {
-							text: opening,
-							style: {
-								fontSize: '13px',
-								fontFamily: 'Verdana, sans-serif'
-							}
-						},
-						min: 0,
-						categories: []
+					min: 0,
+					categories: []
+				},
+				yAxis: {
+					title: {
+						text: '<b>confirmations</b>',
+						style: {
+							fontSize: '13px',
+							fontFamily: 'Verdana, sans-serif'
+						}
 					},
-					yAxis: {
-						title: {
-							text: '<b>confirmations</b>',
-							style: {
-								fontSize: '13px',
-								fontFamily: 'Verdana, sans-serif'
-							}
-						},
-						max: 10,
-						allowDecimals: false
-					},
-					series: [{
-						name: 'confirmations',
-						data: []
-					}],
-					// Module-specific variables
-					transactions: [],
-					addresses: [],
-					block_chain: 'bitcoin',
-					max_confirm: 6,
-					auto_add: true,
-					ring: false
-				};
+					max: 10,
+					allowDecimals: false
+				},
+				series: [{
+					name: 'confirmations',
+					data: []
+				}],
+				tooltip: {
+					formatter: tooltip,
+				},
+				// Module-specific variables
+				transactions: [],
+				addresses: [],
+				block_chain: 'bitcoin',
+				max_confirm: 6,
+				auto_add: true,
+				ring: false
+			};
+			// Set or restore options
+			if (!options) {
+				options = defOptions;
+			} else {
+				var temp3d = options.chart.options3d.enabled;
+				options.chart = defOptions.chart;
+				options.chart.options3d.enabled = temp3d;
+				options.title = defOptions.title;
+				options.legend = defOptions.legend;
+				options.credits = defOptions.credits;
+				options.plotOptions = defOptions.plotOptions;
+				options.xAxis = defOptions.xAxis;
+				if (options.transactions.length > 0) {
+					options.xAxis.title.text = '<b>Retrieveing Data . . .</b>';
+				}
+				options.yAxis = defOptions.yAxis;
+				options.series = defOptions.series;
+				saveOptions();
 			}
 			chart = new Highcharts.Chart(options);
 			
@@ -518,7 +551,7 @@
 						if (data.confirmations > options.max_confirm) {
 							error('The Transaction Has Exceeded the Confirmation Threshold');
 						} else {
-							addTransactionHash(hash, data.confirmations);
+							addTransactionHash(hash, data.confirmations, true);
 							$('#add-id').val('');
 						}
 					},
@@ -558,6 +591,16 @@
 				}
 				$('#load-menu')
 					.append(opts);
+			}
+			
+			function create(set, newSet) {
+				localStorage.setItem('transactions' + set, JSON.stringify(options));
+				if (newSet) {
+					sets++;
+					if ($('#load').button('option', 'disabled') == true) {
+						$('#load').button('option', 'disabled', false)
+					}
+				}
 			}
 			
 			// Process toolbar buttons
@@ -688,11 +731,18 @@
 							click: function () {
 								var set = $('#save-name').val();
 								if (set) {
-									localStorage.setItem('transactions' + set, JSON.stringify(options));
-									sets++;
-									if ($('#load').button('option', 'disabled') == true) {
-										$('#load').button('option', 'disabled', false)
+									if (localStorage.getItem('transactions' + set)) {
+										dialog.dialog('close');
+										yes('Warning', 'Overwrite existing set?', function (ok) {
+											if (ok) {
+												create(set, false);
+											}
+										});
+									} else {
+										dialog.dialog('close');
+										create(set, true);
 									}
+								} else {
 									dialog.dialog('close');
 								}
 							}
@@ -723,7 +773,10 @@
 							text: 'Load',
 							click: function () {
 								clear();
-								options = JSON.parse(localStorage.getItem('transactions' + $('#load-menu').val()));
+								setChartTitle('<b>Retrieving data . . .</b>');
+								var loadedOptions = JSON.parse(localStorage.getItem('transactions' + $('#load-menu').val()));
+								options.addresses = loadedOptions.addresses;
+								options.transactions = loadedOptions.transactions;
 								if (options.transactions.length > 0 || options.addresses.length > 0) {
 									$('#delete').button('option', 'disabled', false)
 									$('#clear').button('option', 'disabled', false)
@@ -731,6 +784,7 @@
 								saveOptions();
 								chart.destroy();
 								chart = new Highcharts.Chart(options);
+								updateData();
 								dialog.dialog('close');
 							}
 						},
@@ -738,17 +792,21 @@
 							id: 'delete-button',
 							text: 'Delete',
 							click: function () {
-								localStorage.removeItem('transactions' + $('#load-menu').val());
-								$('#load-menu').find('option').remove().end();
-								$('#load-menu').selectmenu('destroy');
-								setMenuBuild();
-								$('#load-menu').selectmenu({ style: 'dropdown' });
-								sets--;
-								if (sets == 0) {
-									$('#load').button('option', 'disabled', true)
-									$('#load-button').button('disable');
-									$('#delete-button').button('disable');
-								}
+								yes('Warning', 'Delete selection set?', function (ok) {
+									if (ok) {
+										localStorage.removeItem('transactions' + $('#load-menu').val());
+										$('#load-menu').find('option').remove().end();
+										$('#load-menu').selectmenu('destroy');
+										setMenuBuild();
+										$('#load-menu').selectmenu({ style: 'dropdown' });
+										sets--;
+										if (sets == 0) {
+											$('#load').button('option', 'disabled', true)
+											$('#load-button').button('disable');
+											$('#delete-button').button('disable');
+										}
+									}
+								});
 							}
 						},
 						{
@@ -858,21 +916,21 @@
 			$('#dialog-help').load('transactions.help.html');
 			// Toggle 3D graphs
 			$('#3d').button()
-			.prop('checked', options.chart.options3d.enabled)
-			.click(function () {
-				options = chart.options;
-				chart.destroy();
-				if ($('#3d').is(':checked')) {
-					options.chart.options3d.enabled = true;
-				} else {
-					options.chart.options3d.enabled = false;
-				}
-				chart = new Highcharts.Chart(options);
-				saveOptions();
-			});
+				.prop('checked', options.chart.options3d.enabled)
+				.click(function () {
+					options = chart.options;
+					chart.destroy();
+					if ($('#3d').is(':checked')) {
+						options.chart.options3d.enabled = true;
+					} else {
+						options.chart.options3d.enabled = false;
+					}
+					chart = new Highcharts.Chart(options);
+					saveOptions();
+				});
 			$('#3d').button('refresh');
 			// Module selector
-			new Modules(0);
+			new Modules(1);
 			
 			$('#tb_container').show();
 		});	
@@ -897,45 +955,49 @@
 			connect.send(JSON.stringify(request));
 		}
 		
+		// Update bar graph with confirmation data
+		function updateTransaction(hash, index) {
+			var url = chain_data + options.block_chain + '/transactions/' + hash;
+						
+			$.ajax({
+				url: url,
+				data: {'api-key-id': api_key_id},
+				type: 'GET',
+				success: function(data) {
+					if (data.confirmations > options.max_confirm) {
+						deleteTransaction(hash);
+					} else {
+						addTransactionHash(hash, data.confirmations, false);
+					}
+				}
+			});
+		}
+		
+		// Update transaction data
+		function updateData() {
+			var len = options.transactions.length;
+			
+			for (i = 0; i < len; i++) {
+				updateTransaction(options.transactions[i], i);
+				addRequest(options.transactions[i], 'transaction');
+			}
+			
+			len = options.addresses.length;
+			for (i = 0; i < len; i++) {
+				addAddress(options.addresses[i], false);
+			}
+		}
+			
 		// Connect to Chain's server
 		function start() {
 			if (window.MozWebSocket) {
 				window.WebSocket = window.MozWebSocket;
 			}
 			
-			// Update bar graph with confirmation data
-			function updateTransaction(hash, index) {
-				var url = chain_data + options.block_chain + '/transactions/' + hash;
-							
-				$.ajax({
-					url: url,
-					data: {'api-key-id': api_key_id},
-					type: 'GET',
-					success: function(data) {
-						if (data.confirmations > options.max_confirm) {
-							deleteTransaction(hash);
-						} else {
-							chart.series[0].data[index].update(data.confirmations);
-						}
-					}
-				});
-			}
-			
 			// Open communication
 			connect = new WebSocket(chain_notify);
 			connect.onopen = function (event) {
-				var request;
-				
-				// Update data from previous run
-				var len = options.transactions.length;
-				for (i = 0; i < len; i++) {
-					updateTransaction(options.transactions[i], i);
-					addRequest(options.transactions[i], 'transaction');
-				}
-				len = options.addresses.length;
-				for (i = 0; i < len; i++) {
-					addAddress(options.addresses[i], false);
-				}
+				updateData();
 			};
 			// Process Chain notifications
 			connect.onmessage = function (event) {
@@ -957,7 +1019,7 @@
 						&& $.inArray(data.payload.transaction_hash, options.transactions) == -1
 						&& data.payload.confirmations < options.max_confirm 
 						&& options.auto_add) {
-							addTransactionHash(data.payload.transaction_hash, data.payload.confirmations);
+							addTransactionHash(data.payload.transaction_hash, data.payload.confirmations, true);
 					}
 				}
 			};
