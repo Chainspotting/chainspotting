@@ -244,6 +244,8 @@
 				<option>MAINNET</option>
 				<option>TESTNET3</option>
 			</select>
+			<label for="data-points">Number of Data Points</label>
+			<input style="width: 100%" name="value" id="data-points">
 			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
 		</form>
 	</div>
@@ -270,6 +272,8 @@
 		var chart = null;
 		var options = null;
 		var opening = '<b>press the "+" button to add addresses</b>';
+		var dataLoss = 'Data connection lost. Please reload app.';
+		var lastBeat = null;
 		var sets = set_count();
 		
 		// Find the number of saved selection sets
@@ -343,7 +347,7 @@
 		// Set chart range
 		function setChartRange() {
 			var range = chart.yAxis[0].getExtremes();
-			chart.yAxis[0].setExtremes(Math.max(0, range.dataMin - 1), range.dataMax + 1, true);
+			chart.yAxis[0].setExtremes(Math.max(0, range.dataMin / 1.01), range.dataMax * 1.01, true);
 		}
 		
 		// Add a balance to the graph
@@ -351,7 +355,7 @@
 			var shift = true;
 			
 			setChartTitle('', false);
-			if (chart.series[0].data.length < 12) {
+			if (chart.series[0].data.length < options.points) {
 				shift = false;
 			}
 			chart.series[0].addPoint([(new Date()).getTime(), getBalance()], true, shift);
@@ -568,6 +572,20 @@
 				},
 				series: [{
 					name: 'balances',
+					type: 'area',
+					fillColor : {
+						linearGradient : {
+							x1: 0,
+							y1: 0,
+							x2: 0,
+							y2: 1
+						},
+						stops : [
+							[0, Highcharts.getOptions().colors[0]],
+							[1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+						]
+                },
+                threshold: null
 /*					data: [(new Date()).getTime(), 0],*/
 				}],
 				tooltip: {
@@ -580,6 +598,7 @@
 				currency: 'BTC',
 				balances: [],
 				confirmed: false,
+				points: 30,
 			};
 			
 			// Set or restore options
@@ -598,6 +617,9 @@
 				options.yAxis = defOptions.yAxis;
 				options.series = defOptions.series;
 				options.tooltip = defOptions.tooltip;
+				if (!options.points) {
+					options.points = defOptions.points;
+				}
 				saveOptions();
 			}
 			
@@ -672,7 +694,10 @@
 								dialog.dialog('close');
 							}
 						}
-					]
+					],
+					create: function(event, ui) {
+						$('#add-addresses').css('overflow', 'hidden');
+					}
 				});
 				form = dialog.find('form');
 			});
@@ -775,7 +800,10 @@
 								dialog.dialog('close');
 							}
 						}
-					]
+					],
+					create: function(event, ui) {
+						$('#save-set').css('overflow', 'hidden');
+					}
 				});
 			});
 			$('#load').button({
@@ -843,6 +871,11 @@
 					],
 					create: function(event, ui) {
 						$('#load-set').css('overflow', 'hidden');
+					},
+					close: function() {
+						$('#load-menu').find('option').remove().end();
+						$('#load-menu').selectmenu('destroy');
+						$('#load-menu').selectmenu({ style: 'dropdown' });
 					}
 				});
 				setMenuBuild();
@@ -869,9 +902,14 @@
 							text: 'OK',
 							click: function() {
 								var old_chain = options.block_chain;
+								var old_points = options.points;
 								options.block_chain = $('#block-chain-menu').val() == 'TESTNET3' ? 'testnet3' : 'bitcoin';
+								options.points = $('#data-points').val();
 								if (old_chain != options.block_chain) {
 									clear();
+								}
+								if (old_points > options.points) {
+									newChart();
 								}
 								dialog.dialog('close');
 							}
@@ -891,6 +929,11 @@
 				$('#block-chain-menu')
 					.val(options.block_chain == 'testnet3' ? 'TESTNET3' : 'MAINNET')
 					.selectmenu();
+				$('#data-points')
+					.val(options.points)
+					.spinner({
+						min: 1,
+					});
 			});
 			$('#help').button({
 				text: false,
@@ -963,6 +1006,13 @@
 		
 		// Begin data processing
 		window.onload = function() {
+			setInterval(function () {
+				var now = new Date();
+				
+				if (lastBeat && now - lastBeat > 60000) {
+					dialog('Error', dataLoss);
+				}
+			}, 60000);
 			getPrices();
 			start();
 		}
@@ -1010,11 +1060,12 @@
 							}
 					}
 				} else if (data.payload.type == 'heartbeat') {
+					lastBeat = new Date();
 					getPrices(options.addresses.length > 0 ? addBalance : null);
 				}
 			};
 			connect.onerror = function (event) {
-				error('Data connection lost. Please reload app.');
+				error(dataLoss);
 			};
 		}
 	

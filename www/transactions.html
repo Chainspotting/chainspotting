@@ -257,6 +257,9 @@
 		var chart = null;
 		var options = null;
 		var opening = '<b>press the "+" button to add transactions</b>';
+		var retrieving = '<b>Retrieveing Data . . .</b>';
+		var dataLoss = 'Data connection lost. Please reload app.';
+		var lastBeat = null;
 		var bell = new Audio('audio/bell.wav');
 		var sets = set_count();
 		
@@ -363,7 +366,7 @@
 				$('#clear').button('option', 'disabled', true)
 				$('#delete-button').button('disable');
 			}
-			if (chart.series[0].data.length == 0) {
+			if (chart.series[0].data.length == 0 && chart.xAxis[0].options.title.text != retrieving) {
 				setChartTitle(opening, false);
 			}
 			options = chart.options;
@@ -531,7 +534,7 @@
 				options.plotOptions = defOptions.plotOptions;
 				options.xAxis = defOptions.xAxis;
 				if (options.transactions.length > 0) {
-					options.xAxis.title.text = '<b>Retrieveing Data . . .</b>';
+					options.xAxis.title.text = retrieving;
 				}
 				options.yAxis = defOptions.yAxis;
 				options.series = defOptions.series;
@@ -643,7 +646,10 @@
 								dialog.dialog('close');
 							}
 						}
-					]
+					],
+					create: function(event, ui) {
+						$('#add-transactions').css('overflow', 'hidden');
+					}
 				});
 				$('#transaction-type').buttonset({
 					create: function(event, ui) {
@@ -754,7 +760,10 @@
 								dialog.dialog('close');
 							}
 						}
-					]
+					],
+					create: function(event, ui) {
+						$('#save-set').css('overflow', 'hidden');
+					}
 				});
 			});
 			$('#load').button({
@@ -773,7 +782,7 @@
 							text: 'Load',
 							click: function () {
 								clear();
-								setChartTitle('<b>Retrieving data . . .</b>');
+								setChartTitle(retrieving);
 								var loadedOptions = JSON.parse(localStorage.getItem('transactions' + $('#load-menu').val()));
 								options.addresses = loadedOptions.addresses;
 								options.transactions = loadedOptions.transactions;
@@ -819,6 +828,11 @@
 					],
 					create: function(event, ui) {
 						$('#load-set').css('overflow', 'hidden');
+					},
+					close: function() {
+						$('#load-menu').find('option').remove().end();
+						$('#load-menu').selectmenu('destroy');
+						$('#load-menu').selectmenu({ style: 'dropdown' });
 					}
 				});
 				setMenuBuild();
@@ -937,6 +951,13 @@
 		
 		// Begin data processing
 		window.onload = function() {
+			setInterval(function () {
+				var now = new Date();
+				
+				if (lastBeat && now - lastBeat > 60000) {
+					dialog('Error', dataLoss);
+				}
+			}, 60000);
 			start();
 		}
 		
@@ -1021,10 +1042,12 @@
 						&& options.auto_add) {
 							addTransactionHash(data.payload.transaction_hash, data.payload.confirmations, true);
 					}
+				} else if (data.payload.type == 'heartbeat') {
+					lastBeat = new Date();
 				}
 			};
 			connect.onerror = function (event) {
-				error('Data connection lost. Please reload app.');
+				error(dataLoss);
 			};
 		}
 	

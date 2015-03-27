@@ -227,18 +227,18 @@
 	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="modules.js"></script>
-	<script type="text/javascript" src="third-party/globalize.min.js"></script>
-	<script type="text/javascript" src="third-party/MouseWheel.js"></script>
-	<script type="text/javascript" src="third-party/undomanager.js"></script>
-	<script type="text/javascript" src="third-party/jquery.nearest.min.js"></script>
-	<script type="text/javascript" src="third-party/jquery.elastic.source.js"></script>
-	<script type="text/javascript" src="third-party/jquery.sheet.min.js"></script>
-	<script type="text/javascript" src="third-party/jquery.sheet.financefn.min.js"></script>
-	<script type="text/javascript" src="third-party/jquery.sheet.advancedfn.min.js"></script>
-	<script type="text/javascript" src="third-party/jquery.sheet.dts.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/globalize.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/MouseWheel.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/undomanager.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/jquery.nearest.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/jquery.elastic.source.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/jquery.sheet.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/jquery.sheet.financefn.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/jquery.sheet.advancedfn.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/jquery.sheet.dts.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/formula.min.js"></script>
+	<script type="text/javascript" src="//googledrive.com/host/0B3TvHbZBlvFMfkgwUkF0ZnA2VkZqbnk1N3I2dzhlcl9XLTNmT29EV3RiY05UVHlSa2dyZms/tsv.min.js"></script>
 	<script type="text/javascript" src="third-party/jquery.sheet.bitcoin.js"></script>
-	<script type="text/javascript" src="third-party/formula.min.js"></script>
-	<script type="text/javascript" src="third-party/tsv.min.js"></script>
 	<!-- main() -->
 	<script type="text/javascript">
 	
@@ -253,6 +253,8 @@
 		// Other globals;
 		var docs = docCount();
 		var file = '';
+		var dataLoss = 'Data connection lost. Please reload app.';
+		var lastBeat = null;
 		// Blockchain object
 		var blockchain = {
 			value: 'bitcoin',
@@ -398,7 +400,7 @@
 				});
 			});
 			// Module selector
-			new Modules(1);
+			new Modules(2);
 			$('#modules_container').show();
 		});
 		
@@ -440,6 +442,9 @@
 						}
 					}
 				],
+				create: function(event, ui) {
+					$('#sheet-title').css('overflow', 'hidden');
+				},
 				open: function(event, ui) {
 					jS.toggleHeader(false);
 				},
@@ -516,6 +521,9 @@
 						}
 					}
 				],
+				create: function(event, ui) {
+					$('#save').css('overflow', 'hidden');
+				},
 				open: function(event, ui) {
 					jS.toggleHeader(false);
 				},
@@ -670,6 +678,9 @@
 						}
 					}
 				],
+				create: function(event, ui) {
+					$('#find').css('overflow', 'hidden');
+				},
 				open: function(event, ui) {
 					jS.toggleHeader(false);
 				},
@@ -774,6 +785,14 @@
 		
 		// Begin data processing
 		window.onload = function() {
+			// Check every minute for heartbeat
+			setInterval(function () {
+				var now = new Date();
+				
+				if (lastBeat && now - lastBeat > 60000) {
+					dialog('Error', dataLoss);
+				}
+			}, 60000);
 			start();
 		}
 		
@@ -828,13 +847,14 @@
 				} else if (data.payload.type == 'transaction') {
 					rtd.notify(data.payload.transaction.hash);
 				} else if (data.payload.type == 'heartbeat') {
+					lastBeat = new Date();
 					rtd.notify('btcprice');
 				}
 			};
 			connect.onerror = function (event) {
 				// TODO: Automatic reconnect
 /*				restart();*/
-				dialog('Error', 'Data connection lost. Please reload app.');
+				dialog('Error', dataLoss);
 			};
 		}
 	</script>
