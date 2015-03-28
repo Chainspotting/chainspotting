@@ -1010,7 +1010,7 @@
 				var now = new Date();
 				
 				if (lastBeat && now - lastBeat > 60000) {
-					dialog('Error', dataLoss);
+					error(dataLoss);
 				}
 			}, 60000);
 			getPrices();
